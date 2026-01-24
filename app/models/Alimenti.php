@@ -192,16 +192,24 @@ class Alimenti{
 
     public function delete(){
         //usiamo INSERT SET, così possiamo usare :nome e :categoria come parametri bindati nel prepared statement
-        $query = 'DELETE FROM ' . $this->table . ' WHERE id = :id';
+        $query = 'DELETE FROM ' . $this->table . ' WHERE id = :id AND utente_id = :utente_id';
         //prepare statement
         $stmt = $this->conn->prepare($query);
         //pulisco i dati da caratteri speciali prima di inserirli nel db
         $this->id = htmlspecialchars(strip_tags($this->id));
+        $this->utente_id = htmlspecialchars(strip_tags($this->utente_id));
         //binding dei parametri
-        $stmt->bindParam(':id', $this->id);
-    
+        $stmt->bindValue(':id', $this->id);
+        $stmt->bindValue(':utente_id', $this->utente_id);
+
         //eseguo la query
         if($stmt->execute()){
+            
+            //Nel caso in cui l'id non esista per quell'utente o l'utente manda la richiesta per un id diverso dal suo
+            if($stmt->rowCount() < 1){
+                return false;
+            }
+
             return true;
         } else {
             printf("Errore %s. \n", $stmt->error);

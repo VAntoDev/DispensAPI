@@ -123,15 +123,32 @@ class AlimentiController {
 
         if ($risultato === false) {
             http_response_code(404);
-            echo json_encode(['message' => 'Alimento non aggiornato a causa di un errore / oppure la modifica è uguale al precedente alimento']);
+            echo json_encode(['message' => 'Alimento non aggiornato a causa di un errore / oppure la modifica è uguale al precedente alimento o utente non corretto o non esiste']);
             return;
         }
             
         echo json_encode(['message' => 'Alimento aggiornato']);    
     }
 
-    public function delete($id){
-        echo "Shh non sono una vera delete";
+    public function delete(){
+        //leggo il body raw della richiesta PUT
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        $this->model->setId($data['id'] ?? null);
+        $this->model->setUtenteId($data['utente_id'] ?? null);
+
+        echo json_encode(['error' => "Sono prima di delete"]);
+
+        //richiesta creazione alimento inviato dall'user
+        $risultato = $this->model->delete();
+
+        if ($risultato === false) {
+            http_response_code(404);
+            echo json_encode(['message' => 'Alimento non eliminato a causa di un errore / non esiste o non sei utente non corretto']);
+            return;
+        }
+            
+        echo json_encode(['message' => 'Alimento eliminato']);    
     }
 }
 ?>
