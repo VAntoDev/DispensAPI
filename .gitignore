@@ -6,7 +6,7 @@
 /public/uploads/
 #ignora i log
 *.log*
-#ignora file temporanei di IDE / OS
+#ignora file temporanei di IDE / OS 
 *.swp
 *.swo
 *.idea/

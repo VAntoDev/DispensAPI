@@ -42,7 +42,7 @@ class AlimentiController {
 
             //ATTENZIONE!!
             //I dati vanno presi da _POST in quanto c'è un immagine, quindi la richiesta è di tipo multipart/form-data
-
+    
             /*
             L'utente deve settare:
             public $nome;
@@ -60,7 +60,11 @@ class AlimentiController {
             //$this->model->percorso_immagine, questa cosa la fai dopo aver salvato l'immagine
             //salvo immagine sul server, così da avere il percorso da salvare sul db
             try {
-                $this->model->percorso_immagine = $this->saveImage($_FILES['immagine']);
+                echo json_encode(['error' => 'sono prima del salvaimmagine']);
+                if($FILES['immagine'] != null){
+                    $this->model->percorso_immagine = $this->model->salvaImmagine($_FILES['immagine']);
+                    echo json_encode(['error' => 'sono arrivato dopo il salvaImmagine']);
+                }
             } catch (RuntimeException $e) {
                 http_response_code(400);
                 echo json_encode(['error' => $e->getMessage()]);
@@ -71,11 +75,23 @@ class AlimentiController {
             //$this->model->unita_id = $data->unita_id;
             //$this->model->utente_id = $data->utente_id;
 
+            /*
             $this->model->nome = $_POST['nome'] ?? null;
+            $this->model->setId($_POST['nome']);
             $this->model->categoria_id = $_POST['categoria_id'] ?? null;
             $this->model->quantita = $_POST['quantita'] ?? null;
             $this->model->unita_id = $_POST['unita_id'] ?? null;
             $this->model->utente_id = $_POST['utente_id'] ?? null;
+            */
+
+            $this->model->setNome($_POST['nome'] ?? null);
+            $this->model->setId($_POST['id'] ?? null);
+            $this->model->setCategoriaId($_POST['categoria_id'] ?? null);
+            $this->model->setQuantita($_POST['quantita'] ?? null);
+            $this->model->setUnitaId($_POST['unita_id'] ?? null);
+            $this->model->setUtenteId($_POST['utente_id'] ?? null);
+
+            echo json_encode(['error' => "Sono prima di create"]);
 
             //richiesta creazione alimento inviato dall'user
             $risultato = $this->model->create();
@@ -89,8 +105,29 @@ class AlimentiController {
             echo json_encode(['message' => 'Alimento aggiunto']);
     }
 
-    public function update($id){
-        echo "Shh non sono una vera update";
+    public function update(){
+        //leggo il body raw della richiesta PUT
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        $this->model->setNome($data['nome'] ?? null);
+        $this->model->setId($data['id'] ?? null);
+        $this->model->setCategoriaId($data['categoria_id'] ?? null);
+        $this->model->setQuantita($data['quantita'] ?? null);
+        $this->model->setUnitaId($data['unita_id'] ?? null);
+        $this->model->setUtenteId($data['utente_id'] ?? null);
+
+        echo json_encode(['error' => "Sono prima di update"]);
+
+        //richiesta creazione alimento inviato dall'user
+        $risultato = $this->model->update();
+
+        if ($risultato === false) {
+            http_response_code(404);
+            echo json_encode(['message' => 'Alimento non aggiornato a causa di un errore / oppure la modifica è uguale al precedente alimento']);
+            return;
+        }
+            
+        echo json_encode(['message' => 'Alimento aggiornato']);    
     }
 
     public function delete($id){

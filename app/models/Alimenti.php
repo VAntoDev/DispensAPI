@@ -11,13 +11,13 @@ class Alimenti{
     private $table = 'alimenti'; //verranno letti dalla tabella alimenti
 
     //proprietà alimento
-    public $id;
-    public $nome;
-    public $categoria_id;
-    public $percorso_immagine;
-    public $quantita;
-    public $unita_id;
-    public $utente_id;
+    private $id;
+    private $nome;
+    private $categoria_id;
+    private $percorso_immagine;
+    private $quantita;
+    private $unita_id;
+    private $utente_id;
 
     //costruttore con connessione db
     public function __construct($db){
@@ -27,10 +27,20 @@ class Alimenti{
     //legge i record del database
     public function read(){
         //creo la query, questa 
-        $query = 'SELECT a.id, a.nome, c.nome AS categoria
-                FROM alimenti a
-                LEFT JOIN categorie c ON a.categoria_id = c.id
-                ORDER BY a.id DESC;';
+        $query = '
+        SELECT 
+            a.id,
+            a.nome,
+            a.categoria_id,
+            c.nome AS categoria,
+            a.percorso_immagine,
+            a.quantita,
+            a.unita_id,
+            a.utente_id
+        FROM alimenti a
+        LEFT JOIN categorie c ON a.categoria_id = c.id
+        ORDER BY a.id DESC';
+        
         //prepare statement
         //invia la query a mysql, così la analizza e prepara, poi ritorna un PDOStatement
         
@@ -55,10 +65,21 @@ class Alimenti{
     //prende tutti gli alimenti di un utente dal database
         public function readByUserId(int $id) {
         $query = '
-            SELECT a.id, a.nome, c.nome AS categoria
+            SELECT 
+            a.id,
+            a.nome,
+            a.categoria_id,
+            c.nome AS categoria,
+            a.percorso_immagine,
+            a.quantita,
+            a.unita_id,
+            u.simbolo AS unita,
+            a.utente_id
             FROM alimenti a
             LEFT JOIN categorie c ON a.categoria_id = c.id
+            LEFT JOIN unita_misura u ON a.unita_id = u.id
             WHERE a.utente_id = :utente_id
+            ORDER BY a.id DESC
         ';
 
         //prepara la query
@@ -85,52 +106,86 @@ class Alimenti{
     public $unita_id;
     public $utente_id;
     */
-    public function create($nome, $categoria_id, $percorso_immagine, $quantita, $unita_id, $utente_id){
- 
+    public function create(){
+        try {
+            //query
+            $query = 'INSERT INTO ' . $this->table . ' SET nome = :nome, categoria_id = :categoria_id, percorso_immagine = :percorso_immagine, quantita = :quantita, unita_id = :unita_id, utente_id = :utente_id';
+            // preparazione query
+            $stmt = $this->conn->prepare($query);
+            
+            //binding dei valori
+            $stmt->bindValue(':nome', $this->nome);
+            $stmt->bindValue(':categoria_id', $this->categoria_id);
+            $stmt->bindValue(':percorso_immagine', $this->percorso_immagine);
+            $stmt->bindValue(':quantita', $this->quantita);
+            $stmt->bindValue(':unita_id', $this->unita_id);
+            $stmt->bindValue('utente_id', $this->utente_id);
 
-        //usiamo INSERT SET, così possiamo usare :nome e :categoria come parametri bindati nel prepared statement
-        $query = 'INSERT INTO ' . $this->table . ' SET nome = :nome, categoria_id = :categoria_id';
-        //prepare statement
-        $stmt = $this->conn->prepare($query);
-        //pulisco i dati da caratteri speciali prima di inserirli nel db
-        $this->nome = htmlspecialchars(strip_tags($this->nome));
-        $this->categoria_id = htmlspecialchars(strip_tags($this->categoria_id));
-    
-        //binding dei parametri
-        $stmt->bindParam(':nome', $this->nome);
-        $stmt->bindParam(':categoria_id', $this->categoria_id);
-    
-        //eseguo la query
-        if($stmt->execute()){
+            //eseguo la query
+            $stmt->execute();
+
             return true;
-        } else {
-            printf("Errore %s. \n", $stmt->error);
+
+        //se da un problema allora da errore e lo manda
+        } catch (PDOException $e) {
+            echo json_encode([
+                'step' => 'errore PDO',
+                'sql'  => $query,
+                'msg'  => $e->getMessage()
+        ]);
             return false;
         }
     }
 
+    //AGGIORNARE UPDATE E DELETE CHE FUNZIONANO ANCORA COME LA VECCHIA TEST-REST CHE HAI FATTO
         //la logica dietro create e update è molto simile, quindi possiamo usare il create come base
         //update alimento
     public function update(){
         //usiamo INSERT SET, così possiamo usare :nome e :categoria come parametri bindati nel prepared statement
-        $query = 'UPDATE ' . $this->table . ' SET nome = :nome, categoria_id = :categoria_id
-        WHERE id = :id';
+        //vecchio update
+        //$query = 'UPDATE ' . $this->table . ' SET nome = :nome, categoria_id = :categoria_id
+        //WHERE id = :id';
+
+        //limitazione: l'immagine non si può cambiare.
+        $query = '
+            UPDATE ' . $this->table . ' 
+            SET 
+                nome = :nome, 
+                categoria_id = :categoria_id, 
+                quantita = :quantita, 
+                unita_id = :unita_id 
+            WHERE 
+                id = :id AND utente_id = :utente_id';
+
         //prepare statement
         $stmt = $this->conn->prepare($query);
         //pulisco i dati da caratteri speciali prima di inserirli nel db
         $this->nome = htmlspecialchars(strip_tags($this->nome));
         $this->categoria_id = htmlspecialchars(strip_tags($this->categoria_id));
+        $this->quantita = htmlspecialchars(strip_tags($this->quantita));
+        $this->unita_id = htmlspecialchars(strip_tags($this->unita_id));
         $this->id = htmlspecialchars(strip_tags($this->id));
+        $this->utente_id = htmlspecialchars(strip_tags($this->utente_id));
+
         //binding dei parametri
-        $stmt->bindParam(':nome', $this->nome);
-        $stmt->bindParam(':categoria_id', $this->categoria_id);
-        $stmt->bindParam(':id', $this->id);
+        $stmt->bindValue(':nome', $this->nome);
+        $stmt->bindValue(':categoria_id', $this->categoria_id);
+        $stmt->bindValue(':quantita', $this->quantita);
+        $stmt->bindValue(':unita_id', $this->unita_id);
+        $stmt->bindValue(':id', $this->id);    // id dell'alimento scelto
+        $stmt->bindValue(':utente_id', $this->utente_id); // id dell'utente che sta mandando la richiesta
     
         //eseguo la query
         if($stmt->execute()){
+
+            //Nel caso in cui l'id non esista per quell'utente o l'utente manda la richiesta per un id diverso dal suo
+            if($stmt->rowCount() < 1){
+                return false;
+            }
+
             return true;
         } else {
-            printf("Errore %s. \n", $stmt->error);
+            echo json_encode(['error' => "Errore %s. \n", $stmt->error]);
             return false;
         }
     }
@@ -153,31 +208,9 @@ class Alimenti{
             return false;
         }   
     }
-/*
-    private function salvaImmagine(array $file): string {
 
-        $uploadDir = __DIR__ . '/../../public/uploads/alimenti/';
-        
-        if (!is_dir($uploadDir) || !is_writable($uploadDir)) {
-            http_response_code(500);
-            echo json_encode([
-                'error' => 'Directory upload non configurata'
-            ]);
-            exit;
-        }
-
-        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $filename = uniqid('img_', true) . '.' . $ext;
-
-        move_uploaded_file($file['tmp_name'], $uploadDir . $filename);
-
-        return '/uploads/alimenti/' . $filename;
-    }
-
-
-*/
-    private function salvaImmagine(array $file): string {
-
+    public function salvaImmagine(array $file): string {
+        echo json_encode(['error' => 'sono arrivato dentro salvaImmagine']);
         $uploadDir = __DIR__ . '/../../public/uploads/alimenti/';
 
         //se la cartella in cui fare l'upload non esiste allora da errore
@@ -191,14 +224,38 @@ class Alimenti{
 
         //controllo che l'immagine sia solo del tipo che voglio, altrimenti formato non valido
         $mime = mime_content_type($file['tmp_name']);
-        if (!in_array($mime, ['image/jpeg', 'image/png'])) {
-            throw new RuntimeException('Formato non valido');
-        }
 
-        $filename = uniqid('img_', true) . '.jpg';
-        move_uploaded_file($file['tmp_name'], $uploadDir . $filename);
+        $ext = match ($mime) {
+            'image/jpeg' => '.jpg',
+            'image/png'  => '.png',
+            'image/webp' => '.webp',
+            default      => throw new RuntimeException('Formato non valido'),
+        };
+
+        $filename = uniqid('img_', true) . $ext;
+
+        if (!move_uploaded_file($file['tmp_name'], $uploadDir . $filename)) {
+            throw new RuntimeException('Errore nel salvataggio file');
+        }
 
         return '/uploads/alimenti/' . $filename;
     }
+    // getter
+    public function getId() { return $this->id; }
+    public function getNome() { return $this->nome; }
+    public function getCategoriaId() { return $this->categoria_id; }
+    public function getPercorsoImmagine() { return $this->percorso_immagine; }
+    public function getQuantita() { return $this->quantita; }
+    public function getUnitaId() { return $this->unita_id; }
+    public function getUtenteId() { return $this->utente_id; }
+
+    // setter
+    public function setId($id) { $this->id = $id; }
+    public function setNome($nome) { $this->nome = $nome; }
+    public function setCategoriaId($categoria_id) { $this->categoria_id = $categoria_id; }
+    public function setPercorsoImmagine($percorso_immagine) { $this->percorso_immagine = $percorso_immagine; }
+    public function setQuantita($quantita) { $this->quantita = $quantita; }
+    public function setUnitaId($unita_id) { $this->unita_id = $unita_id; }
+    public function setUtenteId($utente_id) { $this->utente_id = $utente_id; }
 }
 ?>
