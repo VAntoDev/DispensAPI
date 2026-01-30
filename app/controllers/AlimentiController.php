@@ -9,10 +9,12 @@ class AlimentiController {
         $this->model = new Alimenti($db); // $db viene da config.php
     }
 
-    public function select($id = null) {
+    public function select($id = null) { 
+        //uso il fatto che c'è l'id o no per distinguere il tipo di azione che vuole fare l'utente
+        //se vuole avere tutti gli alimenti non mette nessun id (null), se vuole sapere i suoi alimenti mette il proprio id ($id)
         //richiesta di tutti gli alimenti (da rimuovere successivamente perché non serve)
-        if($id === null){
-            
+        if($id === null){ // senza id
+            //richiesta tutti gli alimenti nella tabella
             $alimenti = $this->model->read();
 
             if (empty($alimenti)) {
@@ -22,7 +24,7 @@ class AlimentiController {
             }
 
             echo json_encode(['data' => $alimenti]);
-        } else {
+        } else { //con id
             //richiesta solo alimenti dell'user
             $alimenti = $this->model->readByUserId($id);
 
@@ -36,7 +38,9 @@ class AlimentiController {
         }
 }
 
-    public function create(){
+    public function create($param){
+            // Questa funzione prende $param per uniformarla alle altre e quelle degli altri controller. Ma non ha bisogno di usarlo.
+
             //Prendo i dati dalla POST request
             //$data = json_decode(file_get_contents("php://input"));
 

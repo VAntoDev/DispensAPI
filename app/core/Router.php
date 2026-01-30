@@ -29,8 +29,10 @@ class Router {
             return;
         }
 
-        //Se non c'è un parametro allora è null
+        //Salvo il parametro da dare al controller,se  non c'è un parametro allora è null
+        //i parametri li uso per distinguere: login, register, o id
         $param = $parts[1] ?? null;
+
 
         // costruisco il path del file del controller
         $controllerFile = __DIR__ . '/../controllers/' . $controllerName . '.php';
@@ -57,7 +59,7 @@ class Router {
                 break;
 
             case 'POST':
-                $controller->create();
+                $controller->create($param);
                 break;
 
             case 'PUT':
