@@ -209,40 +209,9 @@ class Utenti{
         } else {
             printf("Errore %s. \n", $stmt->error);
             return false;
-        }   
-    }
-
-    public function salvaImmagine(array $file): string {
-        echo json_encode(['error' => 'sono arrivato dentro salvaImmagine']);
-        $uploadDir = __DIR__ . '/../../public/uploads/alimenti/';
-
-        //se la cartella in cui fare l'upload non esiste allora da errore
-        if (!is_dir($uploadDir) || !is_writable($uploadDir)) {
-            throw new RuntimeException('Upload dir non valida');
-        }
-
-        if ($file['error'] !== UPLOAD_ERR_OK) {
-            throw new RuntimeException('Errore upload');
-        }
-
-        //controllo che l'immagine sia solo del tipo che voglio, altrimenti formato non valido
-        $mime = mime_content_type($file['tmp_name']);
-
-        $ext = match ($mime) {
-            'image/jpeg' => '.jpg',
-            'image/png'  => '.png',
-            'image/webp' => '.webp',
-            default      => throw new RuntimeException('Formato non valido'),
-        };
-
-        $filename = uniqid('img_', true) . $ext;
-
-        if (!move_uploaded_file($file['tmp_name'], $uploadDir . $filename)) {
-            throw new RuntimeException('Errore nel salvataggio file');
-        }
-
-        return '/uploads/alimenti/' . $filename;
-        */
+    
+            }   
+            */
     }
 
     // getter
