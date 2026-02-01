@@ -46,11 +46,11 @@ class Scadenze{
             $query = 'INSERT INTO ' . $this->table . ' SET utente_id = :utente_id, dispensa_id = :dispensa_id, alimento_id = :alimento_id, data_scadenza = :data_scadenza';
             // preparazione query
             $stmt = $this->conn->prepare($query);
-            
+
             //binding dei valori
             $stmt->bindValue(':utente_id', $this->utente_id);
             $stmt->bindValue(':dispensa_id', $this->dispensa_id);
-            $stmt->bindValue(':alimento:id', $this->alimento_id);
+            $stmt->bindValue(':alimento_id', $this->alimento_id);
             $stmt->bindValue(':data_scadenza', $this->data_scadenza);
 
             //eseguo la query

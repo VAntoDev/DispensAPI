@@ -184,14 +184,17 @@ class Utenti{
         }
 
         //eseguo la query
-        if(!$stmt->execute()){
-            //Nel caso in cui l'id non esista per quell'utente o l'utente manda la richiesta per un id diverso dal suo
+        if($stmt->execute()){
             
-            $error = $stmt->errorInfo();
-            error_log($error[2]);
-            return false;
-        } else {
+            //Nel caso in cui l'id non esista per quell'utente o l'utente manda la richiesta per un id diverso dal suo
+            if($stmt->rowCount() < 1){
+                return false;
+            }
+
             return true;
+        } else {
+            printf("Errore %s. \n", $stmt->error);
+            return false;
         }
     }
 

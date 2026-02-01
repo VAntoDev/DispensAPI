@@ -70,31 +70,34 @@ class Dispense{
         $query = '
             UPDATE ' . $this->table . ' 
             SET 
-                nome = :nome,
+                nome = :nome
             WHERE 
                 id = :id AND utente_id = :utente_id';
 
         //prepare statement
         $stmt = $this->conn->prepare($query);
+
         //pulisco i dati da caratteri speciali prima di inserirli nel db
+        $this->id = htmlspecialchars(strip_tags($this->id));
         $this->nome = htmlspecialchars(strip_tags($this->nome));
         $this->utente_id = htmlspecialchars(strip_tags($this->utente_id));
 
         //binding dei parametri
+        $stmt->bindValue(':id', $this->id);        
         $stmt->bindValue(':nome', $this->nome);
         $stmt->bindValue(':utente_id', $this->utente_id);
     
         //eseguo la query
         if($stmt->execute()){
-
-            //Nel caso in cui l'id non esista per quell'utente o l'utente manda la richiesta per un id diverso dal suo, o non viene trovata la dispensa
+            
+            //Nel caso in cui l'id non esista per quell'utente o l'utente manda la richiesta per un id diverso dal suo
             if($stmt->rowCount() < 1){
                 return false;
             }
 
             return true;
         } else {
-            echo json_encode(['error' => "Errore %s. \n", $stmt->error]);
+            printf("Errore %s. \n", $stmt->error);
             return false;
         }
     }
