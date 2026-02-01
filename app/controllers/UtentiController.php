@@ -26,7 +26,7 @@ class UtentiController {
             $data = json_decode(file_get_contents("php://input"), true);
 
             $this->model->setEmail($data['email']);
-            $this->model->setPassword($$data['password']);
+            $this->model->setPassword($data['password']);
             $this->model->setNome($data['nome']);
 
             //richiesta di registrazione user
@@ -45,7 +45,7 @@ class UtentiController {
             $data = json_decode(file_get_contents("php://input"), true);
 
             $this->model->setEmail($data['email']);
-            $this->model->setPassword($$data['password']);
+            $this->model->setPassword($data['password']);
 
             //richiesta di login user
             $risultato = $this->model->login();
@@ -59,57 +59,47 @@ class UtentiController {
             echo json_encode(['message' => 'Account loginnato correttamente']);
     }
 
-    public function update(){
-        /*
+    /* Implementata SENZA SICUREZZA con JWT */
+    public function update($param){
+        
         //leggo il body raw della richiesta PUT
         $data = json_decode(file_get_contents("php://input"), true);
 
-        $this->model->setNome($data['nome'] ?? null);
         $this->model->setId($data['id'] ?? null);
-        $this->model->setCategoriaId($data['categoria_id'] ?? null);
-        $this->model->setQuantita($data['quantita'] ?? null);
-        $this->model->setUnitaId($data['unita_id'] ?? null);
-        $this->model->setUtenteId($data['utente_id'] ?? null);
+        $this->model->setNome($data['nome'] ?? null);
+        $this->model->setEmail($data['email'] ?? null);
+        $this->model->setPassword($data['password'] ?? null);
 
-        echo json_encode(['error' => "Sono prima di update"]);
-
-        //richiesta creazione alimento inviato dall'user
+        //richiesta update account inviato dall'user
         $risultato = $this->model->update();
 
         if ($risultato === false) {
             http_response_code(404);
-            echo json_encode(['message' => 'Alimento non aggiornato a causa di un errore / oppure la modifica è uguale al precedente alimento o utente non corretto o non esiste']);
+            echo json_encode(['message' => 'Account non aggiornato a causa di un errore / oppure la modifica è uguale al precedente alimento o utente non corretto o non esiste']);
             return;
         }
             
-        echo json_encode(['message' => 'Alimento aggiornato']);
-        */    
-        echo json_encode(['message' => 'Funzione non implementata']);
+        echo json_encode(['message' => 'account aggiornato']);
     }
 
-    /* Non ancora implementata */
-    public function delete(){
-        /*
+    /* Implementata SENZA SICUREZZA con JWT */
+    public function delete($param){
+        
         //leggo il body raw della richiesta PUT
         $data = json_decode(file_get_contents("php://input"), true);
 
         $this->model->setId($data['id'] ?? null);
-        $this->model->setUtenteId($data['utente_id'] ?? null);
 
-        echo json_encode(['error' => "Sono prima di delete"]);
-
-        //richiesta creazione alimento inviato dall'user
+        //richiesta eliminazione account inviata dall'user
         $risultato = $this->model->delete();
 
         if ($risultato === false) {
             http_response_code(404);
-            echo json_encode(['message' => 'Alimento non eliminato a causa di un errore / non esiste o non sei utente non corretto']);
+            echo json_encode(['message' => 'Account non eliminato a causa di un errore / non esiste o non sei utente non corretto']);
             return;
         }
             
-        echo json_encode(['message' => 'Alimento eliminato']); 
-        */
-        echo json_encode(['message' => 'Funzione non implementata']);
+        echo json_encode(['message' => 'Account eliminato']); 
     }
     
 }

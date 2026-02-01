@@ -55,6 +55,15 @@ class Utenti{
     // register (create, POST utenti/register)
     public function register(){
         try {
+            //controllo base per sapere se l'mail è valida
+            $email = strtolower(trim($this->email));
+
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Email non valida']);
+                return false;
+            }
+
             //query
             $query = 'INSERT INTO ' . $this->table . ' SET email = :email, password_hash = :password_hash, nome = :nome'; //qui c'è scritto password hash ma l'utente ovviamente la manda non hashata nel json
             // preparazione query
@@ -109,8 +118,10 @@ class Utenti{
             //prendo la riga che contiene email e password nel db, così posso usarla per verificare la password
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
             echo json_encode([$row]);
+
             if ($row){
                 // verifica della password (hashata nel DB)
+                //RIMUOVERE QUESTE LINEE!!!!!
                 if (password_verify($this->password, $row['password_hash'])) {
                     // AGGIUNGERE QUI GENERAZIONE TOKEN JWT, INVECE DI RITORNARE TRUE GLI METTI IL TOKEN E POI IL CONTROLLER LO MANDA CON JSON-ENCODE
                     return true; //password corretta e login riuscito
@@ -134,79 +145,75 @@ class Utenti{
         }
     }
 
-    //AGGIORNARE UPDATE E DELETE CHE FUNZIONANO ANCORA COME LA VECCHIA TEST-REST CHE HAI FATTO
-        //la logica dietro create e update è molto simile, quindi possiamo usare il create come base
-        //update alimento
+    /* Implementata SENZA SICUREZZA con JWT */
     public function update(){
         /* SVILUPPARE DELETE CHE VERIFICA TRAMITE TOKEN JWT PRIMA DI FARE IL UPDATE
-
-        //usiamo INSERT SET, così possiamo usare :nome e :categoria come parametri bindati nel prepared statement
-        //vecchio update
-        //$query = 'UPDATE ' . $this->table . ' SET nome = :nome, categoria_id = :categoria_id
-        //WHERE id = :id';
-
-        //limitazione: l'immagine non si può cambiare.
-        $query = '
-            UPDATE ' . $this->table . ' 
-            SET 
-                nome = :nome, 
-                categoria_id = :categoria_id, 
-                quantita = :quantita, 
-                unita_id = :unita_id 
-            WHERE 
-                id = :id AND utente_id = :utente_id';
-
-        //prepare statement
-        $stmt = $this->conn->prepare($query);
-        //pulisco i dati da caratteri speciali prima di inserirli nel db
-        $this->nome = htmlspecialchars(strip_tags($this->nome));
-        $this->categoria_id = htmlspecialchars(strip_tags($this->categoria_id));
-        $this->quantita = htmlspecialchars(strip_tags($this->quantita));
-        $this->unita_id = htmlspecialchars(strip_tags($this->unita_id));
-        $this->id = htmlspecialchars(strip_tags($this->id));
-        $this->utente_id = htmlspecialchars(strip_tags($this->utente_id));
-
-        //binding dei parametri
-        $stmt->bindValue(':nome', $this->nome);
-        $stmt->bindValue(':categoria_id', $this->categoria_id);
-        $stmt->bindValue(':quantita', $this->quantita);
-        $stmt->bindValue(':unita_id', $this->unita_id);
-        $stmt->bindValue(':id', $this->id);    // id dell'alimento scelto
-        $stmt->bindValue(':utente_id', $this->utente_id); // id dell'utente che sta mandando la richiesta
-    
-        //eseguo la query
-        if($stmt->execute()){
-
-            //Nel caso in cui l'id non esista per quell'utente o l'utente manda la richiesta per un id diverso dal suo
-            if($stmt->rowCount() < 1){
-                return false;
-            }
-
-            return true;
-        } else {
-            echo json_encode(['error' => "Errore %s. \n", $stmt->error]);
-            return false;
-        }
         */
-    }
 
-    public function delete(){
-        /* SVILUPPARE DELETE CHE VERIFICA TRAMITE TOKEN JWT PRIMA DI FARE IL DELETE
+        // Devo fare in modo che se la password è null questa non venga neanche aggiunta alla query, così aggiorna solo utente ed email senza dover rifare l'hash
+        $query = "
+            UPDATE utenti
+            SET nome = :nome,
+                email = :email
+        ";
 
-        //usiamo INSERT SET, così possiamo usare :nome e :categoria come parametri bindati nel prepared statement
-        $query = 'DELETE FROM ' . $this->table . ' WHERE id = :id AND utente_id = :utente_id';
+        if ($this->password !== null) {
+            $query .= ", password_hash = :password_hash";
+        }
+
+        $query .= " WHERE id = :id";
+
         //prepare statement
         $stmt = $this->conn->prepare($query);
+
         //pulisco i dati da caratteri speciali prima di inserirli nel db
         $this->id = htmlspecialchars(strip_tags($this->id));
-        $this->utente_id = htmlspecialchars(strip_tags($this->utente_id));
+        $this->nome = htmlspecialchars(strip_tags($this->nome));
+        $this->email = htmlspecialchars(strip_tags($this->email));
+        // non serve proteggere la password con specialchars che nel db è già hashata
+
         //binding dei parametri
         $stmt->bindValue(':id', $this->id);
-        $stmt->bindValue(':utente_id', $this->utente_id);
+        $stmt->bindValue(':nome', $this->nome);
+        $stmt->bindValue(':email', $this->email);
+
+        // se l'utente chiede di cambiare la password la hasha, altrimenti tiene la stessa
+        if (!empty($this->password)) {
+            $password_hash = password_hash($this->password, PASSWORD_DEFAULT);
+            $stmt->bindValue(':password_hash', $password_hash);
+        }
+
+        //eseguo la query
+        if(!$stmt->execute()){
+            //Nel caso in cui l'id non esista per quell'utente o l'utente manda la richiesta per un id diverso dal suo
+            
+            $error = $stmt->errorInfo();
+            error_log($error[2]);
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    /* Implementata SENZA SICUREZZA con JWT */
+    public function delete(){
+        /* SVILUPPARE DELETE CHE VERIFICA TRAMITE TOKEN JWT PRIMA DI FARE IL DELETE
+        */
+
+        //usiamo INSERT SET, così possiamo usare :nome e :categoria come parametri bindati nel prepared statement
+        $query = 'DELETE FROM ' . $this->table . ' WHERE id = :id';
+
+        //prepare statement
+        $stmt = $this->conn->prepare($query);
+
+        //pulisco i dati da caratteri speciali prima di inserirli nel db
+        $this->id = htmlspecialchars(strip_tags($this->id));
+
+        //binding dei parametri
+        $stmt->bindValue(':id', $this->id);
 
         //eseguo la query
         if($stmt->execute()){
-            
             //Nel caso in cui l'id non esista per quell'utente o l'utente manda la richiesta per un id diverso dal suo
             if($stmt->rowCount() < 1){
                 return false;
@@ -216,9 +223,7 @@ class Utenti{
         } else {
             printf("Errore %s. \n", $stmt->error);
             return false;
-    
-            }   
-            */
+        }   
     }
 
     // getter

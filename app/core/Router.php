@@ -52,7 +52,6 @@ class Router {
 
         // Importante! Salvo il Metodo usato nella Richiesta, questo mi dirà quale funzione del Controller usare
         $httpMethod = $_SERVER['REQUEST_METHOD'];
-        echo json_encode(['message' => 'sono qua']);
 
         //DEVI MODIFICARE QUESTO PER FARE IN MODO CHE FUNZIONI CON users/42/alimenti (da controlleralimenti) che per ora non fai per sbrigarti.
         //Ora funziona con: http://localhost/dispensAPI/public/alimenti/1 però non va bene.
