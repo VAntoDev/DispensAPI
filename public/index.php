@@ -11,13 +11,20 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 // Richiedo i file, uso require_once perché da errore fatale se un file manca.
 //Core
-require_once '../app/core/Router.php';
+require_once __DIR__ . '/../app/core/Router.php';
+require_once __DIR__ . '/../app/core/Authorization.php';
 
-//Controller
-require_once '../app/controllers/AlimentiController.php'; //controlla se lo stai facendo due volte nel router
+//Controllers
+require_once __DIR__ . '/../app/controllers/AlimentiController.php';
+require_once __DIR__ . '/../app/controllers/UtentiController.php';
 
 //Models
-require_once '../app/models/Alimenti.php'; 
+require_once __DIR__ . '/../app/models/Alimenti.php';
+require_once __DIR__ . '/../app/models/Categorie.php';
+require_once __DIR__ . '/../app/models/Dispense.php';
+require_once __DIR__ . '/../app/models/Scadenze.php';
+require_once __DIR__ . '/../app/models/Unita_Misura.php';
+require_once __DIR__ . '/../app/models/Utenti.php';
 
 //TEST
 if(!file_exists('../app/models/Alimenti.php')){

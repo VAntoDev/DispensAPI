@@ -62,6 +62,9 @@ class Utenti{
             
             //hash della password prima di salvarlo
             $password_hash = password_hash($this->password, PASSWORD_DEFAULT);
+            echo json_encode(['message' => 'email:'.$this->email]);
+            echo json_encode(['message' => 'password:'.$this->password]);
+            echo json_encode(['message' => 'nome: '.$this->nome]);
 
             //binding dei valori
             $stmt->bindValue(':email', $this->email);
@@ -105,16 +108,20 @@ class Utenti{
 
             //prendo la riga che contiene email e password nel db, così posso usarla per verificare la password
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            if ($row) {
+            echo json_encode([$row]);
+            if ($row){
                 // verifica della password (hashata nel DB)
                 if (password_verify($this->password, $row['password_hash'])) {
                     // AGGIUNGERE QUI GENERAZIONE TOKEN JWT, INVECE DI RITORNARE TRUE GLI METTI IL TOKEN E POI IL CONTROLLER LO MANDA CON JSON-ENCODE
                     return true; //password corretta e login riuscito
                 } else {
+                    // rimuovere questo: problema di sicurezza, l'utente non ha bisogno di sapere se sbaglia la password o l'utente altrimenti un malintenzionato potrebbe sapere che esiste un account con quel nome
+                    echo json_encode(["password errata"]);
                     return false; // password errata
                 }
             } else {
+                // rimuovere questo: problema di sicurezza, l'utente non ha bisogno di sapere se sbaglia la password o l'utente altrimenti un malintenzionato potrebbe sapere che esiste un account con quel nome
+                echo json_encode(["utente non trovato"]);
                 return false; // utente non trovato
             }
 
@@ -216,7 +223,7 @@ class Utenti{
 
     // getter
     public function getId() { return $this->id; }
-    public function getEmail() { return $this->email; }
+    public function getEmail() { return "$this->email"; }
     public function getPassword() { return $this->password; }
     public function getNome() { return $this->nome; }
 
