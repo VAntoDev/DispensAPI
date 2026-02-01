@@ -10,6 +10,10 @@ class CategorieController {
     }
 
     public function select($id = null) { 
+        //Sostituisco la cache messa inizialmente nell'index come no store perché questa risorsa è uguale per tutti gli utenti e non cambia quasi mai, così l'utente genera meno richieste per questa risorsa
+        header('Cache-Control: public, max-age=3600'); // cacheabile per 1h
+        
+
         if($id === null){ // senza id, funziona solo senza questa richiesta
             //richiesta tutte le categorie nella tabella
             $result = $this->model->read();
