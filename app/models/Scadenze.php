@@ -43,7 +43,34 @@ class Scadenze{
     public function create(){
         try {
             //query
+            
+            //Controllo che le FK relative all'utente esistano ovvero che: alimento_id e dispensa_id siano legate all'utente
+            $query = "
+                SELECT 1 FROM dispense d
+                JOIN alimenti a ON a.id = :alimento_id
+                WHERE d.id = :dispensa_id 
+                AND d.utente_id = :utente_dispensa_id 
+                AND a.utente_id = :utente_alimento_id
+            ";
+            
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindValue(':utente_dispensa_id', $this->utente_id);
+            $stmt->bindValue(':utente_alimento_id', $this->utente_id);
+            $stmt->bindValue(':dispensa_id', $this->dispensa_id);
+            $stmt->bindValue(':alimento_id', $this->alimento_id);
+
+            $stmt->execute();
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$row) {
+                http_response_code(403);
+                echo json_encode(["error" => "Dispensa o alimento non appartengono all'utente"]);
+                return;
+            }
+
+            //Inserisco la riga nella tabella, adesso che so che le informazioni sono legate all'utente
             $query = 'INSERT INTO ' . $this->table . ' SET utente_id = :utente_id, dispensa_id = :dispensa_id, alimento_id = :alimento_id, data_scadenza = :data_scadenza';
+
             // preparazione query
             $stmt = $this->conn->prepare($query);
 
@@ -56,16 +83,29 @@ class Scadenze{
             //eseguo la query
             $stmt->execute();
 
-            return true;
+            // Una volta eseguita, se è andato tutto bene, ritorno la riga con l'id appena inserito
+            $stmt = $this->conn->prepare("
+                SELECT id, dispensa_id, alimento_id, data_scadenza
+                FROM scadenze
+                WHERE id = :id
+            ");
+
+            $stmt->bindValue(':id', $this->conn->lastInsertId());
+            $stmt->execute();
+            
+            //echo json_encode(['data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         //se da un problema allora da errore e lo manda
         } catch (PDOException $e) {
+            /*
             echo json_encode([
                 'step' => 'errore PDO',
                 'sql'  => $query,
                 'msg'  => $e->getMessage()
-        ]);
-            return false;
+        ]);*/
+            return;
         }
     }
 

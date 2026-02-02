@@ -12,7 +12,8 @@ class ScadenzeController {
     public function select($id = null) { 
         // l'utente non dovrebbe poterle leggere tutte, rimuovere successivamente
         if($id === null){ // senza id
-            echo json_encode(['error' => 'Richiesta non esistente per questo model']);
+            http_response_code(404);
+            //echo json_encode(['error' => 'Richiesta non esistente per questo model']);
             return;
 
         } else { //con id
@@ -21,10 +22,11 @@ class ScadenzeController {
 
             if (empty($result)) {
                 http_response_code(404);
-                echo json_encode(['message' => 'Nessuna scadenza trovata']);
+                //echo json_encode(['message' => 'Nessuna scadenza trovata']);
                 return;
             }
             
+            http_response_code(200);
             echo json_encode(['data' => $result]);
         }
     }
@@ -41,16 +43,18 @@ class ScadenzeController {
             //richiesta di creazione dispensa
             $risultato = $this->model->create();
 
-            if ($risultato === false) {
+            if (empty($risultato)){
                 http_response_code(404);
-                echo json_encode(['message' => 'Scadenza non aggiunta a causa di un errore']);
+                //echo json_encode(['message' => 'Scadenza non aggiunta a causa di un errore']);
                 return;
             }
-            
-            echo json_encode(['message' => 'Scadenza aggiunta']);
+            http_response_code(200);
+            //echo json_encode(['message' => 'Scadenza aggiunta']);
+            echo json_encode(['data' => $risultato]);
     }
 
-    // Update della dispensa, ne modifica il nome
+    // Update della scadenza, ho deciso che le scadenze non hanno un update perché se l'utente non le vuole basta eliminare e mettere una nuova scadenza
+    /*
     public function update(){
         
         //leggo il body raw della richiesta PUT
@@ -71,8 +75,9 @@ class ScadenzeController {
             
         echo json_encode(['message' => 'Scadenza aggiornata']);
     }
+        */
 
-    // elimina la dispensa tramite l'id della dispensa e l'utente che la possiede
+    // elimina la scadenza tramite l'id della scadenza e l'utente che la possiede
     public function delete($param){
         //leggo il body raw della richiesta PUT
         $data = json_decode(file_get_contents("php://input"), true);
@@ -85,11 +90,12 @@ class ScadenzeController {
 
         if ($risultato === false) {
             http_response_code(404);
-            echo json_encode(['message' => 'Scadenza non eliminata a causa di un errore / non esiste o non sei utente non corretto']);
+            //echo json_encode(['message' => 'Scadenza non eliminata a causa di un errore / non esiste o non sei utente non corretto']);
             return;
         }
-            
-        echo json_encode(['message' => 'Scadenza eliminata']); 
+        
+        http_response_code(204);
+        //echo json_encode(['message' => 'Scadenza eliminata']); 
     }
     
 }
