@@ -109,31 +109,68 @@ class Alimenti{
     public function create(){
         try {
             //query
-            $query = 'INSERT INTO ' . $this->table . ' SET nome = :nome, categoria_id = :categoria_id, percorso_immagine = :percorso_immagine, quantita = :quantita, unita_id = :unita_id, utente_id = :utente_id';
+            $query = 'INSERT INTO ' . $this->table . ' SET nome = :nome, categoria_id = :categoria_id, quantita = :quantita, unita_id = :unita_id, utente_id = :utente_id';
             // preparazione query
             $stmt = $this->conn->prepare($query);
             
             //binding dei valori
             $stmt->bindValue(':nome', $this->nome);
             $stmt->bindValue(':categoria_id', $this->categoria_id);
-            $stmt->bindValue(':percorso_immagine', $this->percorso_immagine);
+            //$stmt->bindValue(':percorso_immagine', $this->percorso_immagine);
             $stmt->bindValue(':quantita', $this->quantita);
             $stmt->bindValue(':unita_id', $this->unita_id);
-            $stmt->bindValue('utente_id', $this->utente_id);
+            $stmt->bindValue(':utente_id', $this->utente_id);
 
             //eseguo la query
             $stmt->execute();
 
-            return true;
+            //prendo l'id dell'alimento appena aggiunto
+            $alimentoId = $this->conn->lastInsertId();
+
+            // Salvo l'immagine
+            try {
+                if($this->percorso_immagine != null){
+                    $percorso = $this->salvaImmagine($_FILES['immagine']);
+                    $this->percorso_immagine = $percorso;
+                } else {
+                    //immagine null
+                    //echo json_encode(["Percorso" => "immagine null, la carico come NULL"]);
+                }
+            } catch (RuntimeException $e){
+                //400 in questo caso è "errore del client nel mandare l'immagine"
+                //echo json_encode(['error' => $e->getMessage()]);
+                return;
+            }
+            
+            //echo json_encode(['data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+
+            $query = "UPDATE alimenti SET percorso_immagine = :percorso_immagine WHERE id = :id";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindValue(':percorso_immagine', $this->percorso_immagine);
+            $stmt->bindValue(':id', $alimentoId);
+            $stmt->execute();
+
+            // Una volta eseguita, se è andato tutto bene, ritorno la riga con l'id appena inserito
+            $stmt = $this->conn->prepare("
+                SELECT id, nome, categoria_id, percorso_immagine, unita_id, quantita
+                FROM alimenti
+                WHERE id = :id
+            ");
+
+            $stmt->bindValue(':id', $alimentoId);
+            $stmt->execute();
+
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);            
 
         //se da un problema allora da errore e lo manda
         } catch (PDOException $e) {
-            echo json_encode([
+            /*echo json_encode([
                 'step' => 'errore PDO',
                 'sql'  => $query,
                 'msg'  => $e->getMessage()
-        ]);
-            return false;
+            
+        ]);*/
+            return;
         }
     }
 
@@ -180,13 +217,23 @@ class Alimenti{
 
             //Nel caso in cui l'id non esista per quell'utente o l'utente manda la richiesta per un id diverso dal suo
             if($stmt->rowCount() < 1){
-                return false;
+                return;
             }
 
-            return true;
+            // Una volta eseguita, se è andato tutto bene, ritorno la riga con l'id appena inserito
+            $stmt = $this->conn->prepare("
+                SELECT id, nome, categoria_id, percorso_immagine, unita_id, quantita
+                FROM alimenti
+                WHERE id = :id
+            ");
+
+            $stmt->bindValue(':id', $this->id);
+            $stmt->execute();
+
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);  
         } else {
-            echo json_encode(['error' => "Errore %s. \n", $stmt->error]);
-            return false;
+            //echo json_encode(['error' => "Errore %s. \n", $stmt->error]);
+            return;
         }
     }
 
@@ -218,7 +265,6 @@ class Alimenti{
     }
 
     public function salvaImmagine(array $file): string {
-        echo json_encode(['error' => 'sono arrivato dentro salvaImmagine']);
         $uploadDir = __DIR__ . '/../../public/uploads/alimenti/';
 
         //se la cartella in cui fare l'upload non esiste allora da errore
@@ -248,6 +294,7 @@ class Alimenti{
 
         return '/uploads/alimenti/' . $filename;
     }
+
     // getter
     public function getId() { return $this->id; }
     public function getNome() { return $this->nome; }

@@ -56,17 +56,23 @@ class AlimentiController {
 
             //$this->model->percorso_immagine, questa cosa la fai dopo aver salvato l'immagine
             //salvo immagine sul server, così da avere il percorso da salvare sul db
+            //echo json_encode(["Percorso" => $_FILES['immagine']]);
+            /*
             try {
-                if($FILES['immagine'] != null){
-                    $this->model->percorso_immagine = $this->model->salvaImmagine($_FILES['immagine']);
+                if($_FILES['immagine'] != null){
+                    $percorso = $this->model->salvaImmagine($_FILES['immagine']);
+                    $this->model->setPercorsoImmagine($percorso);
+                } else {
+                    echo json_encode(["Percorso" => "Immagine null, la carico come NULL"]);
                 }
-            } catch (RuntimeException $e) {
+            } catch (RuntimeException $e){
                 http_response_code(400);
                 //400 in questo caso è "errore del client nel mandare l'immagine"
                 //echo json_encode(['error' => $e->getMessage()]);
                 return;
-            }    
-
+            }
+            */
+            $this->model->setPercorsoImmagine($_FILES['immagine'] ?? null);
             $this->model->setNome($_POST['nome'] ?? null);
             $this->model->setId($_POST['id'] ?? null);
             $this->model->setCategoriaId($_POST['categoria_id'] ?? null);
@@ -77,14 +83,14 @@ class AlimentiController {
             //richiesta creazione alimento inviato dall'user
             $risultato = $this->model->create();
 
-            if ($risultato === false) {
+            if (empty($risultato)) {
                 http_response_code(404);
                 //echo json_encode(['message' => 'Alimento non aggiunto a causa di un errore']);
                 return;
             }
 
             http_response_code(200);
-            //echo json_encode(['message' => 'Alimento aggiunto']);
+            echo json_encode(['data' => $risultato]);
     }
 
     public function update(){
@@ -101,13 +107,14 @@ class AlimentiController {
         //richiesta creazione alimento inviato dall'user
         $risultato = $this->model->update();
 
-        if ($risultato === false) {
+        if(empty($risultato)){
             http_response_code(404);
             //echo json_encode(['message' => 'Alimento non aggiornato a causa di un errore / oppure la modifica è uguale al precedente alimento o utente non corretto o non esiste']);
             return;
         }
             
         http_response_code(200);
+        echo json_encode(['data' => $risultato]);
         //echo json_encode(['message' => 'Alimento aggiornato']);    
     }
 
