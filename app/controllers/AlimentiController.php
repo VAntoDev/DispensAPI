@@ -19,21 +19,24 @@ class AlimentiController {
 
             if (empty($alimenti)) {
                 http_response_code(404);
-                echo json_encode(['message' => 'Nessun alimento trovato']);
+                //echo json_encode(['message' => 'Nessun alimento trovato']);
                 return;
             }
 
+            http_response_code(200);
             echo json_encode(['data' => $alimenti]);
+
         } else { //con id
             //richiesta solo alimenti dell'user
             $alimenti = $this->model->readByUserId($id);
 
             if (empty($alimenti)) {
                 http_response_code(404);
-                echo json_encode(['message' => 'Nessun alimento trovato']);
+                //echo json_encode(['message' => 'Nessun alimento trovato']);
                 return;
             }
-            
+
+            http_response_code(200);
             echo json_encode(['data' => $alimenti]);
         }
 }
@@ -47,16 +50,6 @@ class AlimentiController {
             //ATTENZIONE!!
             //I dati vanno presi da _POST in quanto c'è un immagine, quindi la richiesta è di tipo multipart/form-data
     
-            /*
-            L'utente deve settare:
-            public $nome;
-            public $categoria_id;
-            public $immagine;
-            public $quantita;
-            public $unita_id;
-            public $utente_id;
-            */
-
             //Assegno i dati alle variaibli
             //$this->model->nome = $data->nome;
             //$this->model->categoria_id = $data->categoria_id;
@@ -64,29 +57,15 @@ class AlimentiController {
             //$this->model->percorso_immagine, questa cosa la fai dopo aver salvato l'immagine
             //salvo immagine sul server, così da avere il percorso da salvare sul db
             try {
-                echo json_encode(['error' => 'sono prima del salvaimmagine']);
                 if($FILES['immagine'] != null){
                     $this->model->percorso_immagine = $this->model->salvaImmagine($_FILES['immagine']);
-                    echo json_encode(['error' => 'sono arrivato dopo il salvaImmagine']);
                 }
             } catch (RuntimeException $e) {
                 http_response_code(400);
-                echo json_encode(['error' => $e->getMessage()]);
+                //400 in questo caso è "errore del client nel mandare l'immagine"
+                //echo json_encode(['error' => $e->getMessage()]);
                 return;
             }    
-
-            //$this->model->quantita = $data->quantita;
-            //$this->model->unita_id = $data->unita_id;
-            //$this->model->utente_id = $data->utente_id;
-
-            /*
-            $this->model->nome = $_POST['nome'] ?? null;
-            $this->model->setId($_POST['nome']);
-            $this->model->categoria_id = $_POST['categoria_id'] ?? null;
-            $this->model->quantita = $_POST['quantita'] ?? null;
-            $this->model->unita_id = $_POST['unita_id'] ?? null;
-            $this->model->utente_id = $_POST['utente_id'] ?? null;
-            */
 
             $this->model->setNome($_POST['nome'] ?? null);
             $this->model->setId($_POST['id'] ?? null);
@@ -95,18 +74,17 @@ class AlimentiController {
             $this->model->setUnitaId($_POST['unita_id'] ?? null);
             $this->model->setUtenteId($_POST['utente_id'] ?? null);
 
-            echo json_encode(['error' => "Sono prima di create"]);
-
             //richiesta creazione alimento inviato dall'user
             $risultato = $this->model->create();
 
             if ($risultato === false) {
                 http_response_code(404);
-                echo json_encode(['message' => 'Alimento non aggiunto a causa di un errore']);
+                //echo json_encode(['message' => 'Alimento non aggiunto a causa di un errore']);
                 return;
             }
-            
-            echo json_encode(['message' => 'Alimento aggiunto']);
+
+            http_response_code(200);
+            //echo json_encode(['message' => 'Alimento aggiunto']);
     }
 
     public function update(){
@@ -120,18 +98,17 @@ class AlimentiController {
         $this->model->setUnitaId($data['unita_id'] ?? null);
         $this->model->setUtenteId($data['utente_id'] ?? null);
 
-        echo json_encode(['error' => "Sono prima di update"]);
-
         //richiesta creazione alimento inviato dall'user
         $risultato = $this->model->update();
 
         if ($risultato === false) {
             http_response_code(404);
-            echo json_encode(['message' => 'Alimento non aggiornato a causa di un errore / oppure la modifica è uguale al precedente alimento o utente non corretto o non esiste']);
+            //echo json_encode(['message' => 'Alimento non aggiornato a causa di un errore / oppure la modifica è uguale al precedente alimento o utente non corretto o non esiste']);
             return;
         }
             
-        echo json_encode(['message' => 'Alimento aggiornato']);    
+        http_response_code(200);
+        //echo json_encode(['message' => 'Alimento aggiornato']);    
     }
 
     public function delete(){
@@ -141,18 +118,17 @@ class AlimentiController {
         $this->model->setId($data['id'] ?? null);
         $this->model->setUtenteId($data['utente_id'] ?? null);
 
-        echo json_encode(['error' => "Sono prima di delete"]);
-
         //richiesta creazione alimento inviato dall'user
         $risultato = $this->model->delete();
 
         if ($risultato === false) {
             http_response_code(404);
-            echo json_encode(['message' => 'Alimento non eliminato a causa di un errore / non esiste o non sei utente non corretto']);
+            //echo json_encode(['message' => 'Alimento non eliminato a causa di un errore / non esiste o non sei utente non corretto']);
             return;
         }
-            
-        echo json_encode(['message' => 'Alimento eliminato']);    
+
+        http_response_code(204);
+        //echo json_encode(['message' => 'Alimento eliminato']);    
     }
 }
 ?>

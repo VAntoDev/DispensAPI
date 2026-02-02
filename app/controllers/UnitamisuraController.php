@@ -19,10 +19,11 @@ class UnitamisuraController {
 
             if (empty($result)){
                 http_response_code(404);
-                echo json_encode(['message' => 'Nessuna unita di misura trovata']);
+                //echo json_encode(['message' => 'Nessuna unita di misura trovata']);
                 return;
             }
 
+            http_response_code(200);
             echo json_encode(['data' => $result]);
         }
     }

@@ -16,7 +16,8 @@ class UtentiController {
         } else if($param == "register"){
             $this->register();
         } else {
-            echo json_encode(['error' => 'Parametro non valido']);
+            http_response_code(400);
+            //echo json_encode(['error' => 'Parametro non valido']);
         }
 
     }
@@ -33,12 +34,13 @@ class UtentiController {
             $risultato = $this->model->register();
 
             if ($risultato === false) {
-                http_response_code(404);
-                echo json_encode(['message' => 'Account non aggiunto a causa di un errore']);
+                http_response_code(400);
+                //echo json_encode(['message' => 'Account non aggiunto a causa di un errore']);
                 return;
             }
             
-            echo json_encode(['message' => 'Account aggiunto']);
+            http_response_code(200);
+            //echo json_encode(['message' => 'Account aggiunto']);
     }
 
     private function login(){
@@ -50,13 +52,15 @@ class UtentiController {
             //richiesta di login user
             $risultato = $this->model->login();
 
-            if ($risultato === false) {
+            if (empty($risultato)){
                 http_response_code(404);
-                echo json_encode(['message' => 'Account non loginnato a causa di un errore']);
+                //echo json_encode(['message' => 'Account non loginnato a causa di un errore']);
                 return;
             }
-            
-            echo json_encode(['message' => 'Account loginnato correttamente']);
+
+            http_response_code(200);
+            echo json_encode(['data' => $risultato]);
+            //echo json_encode(['message' => 'Account loginnato correttamente']);
     }
 
     /* Implementata SENZA SICUREZZA con JWT */
@@ -73,13 +77,15 @@ class UtentiController {
         //richiesta update account inviato dall'user
         $risultato = $this->model->update();
 
-        if ($risultato === false) {
+        if(empty($risultato)){
             http_response_code(404);
-            echo json_encode(['message' => 'Account non aggiornato a causa di un errore / oppure la modifica è uguale al precedente alimento o utente non corretto o non esiste']);
+            //echo json_encode(['message' => 'Account non aggiornato a causa di un errore / oppure la modifica è uguale al precedente alimento o utente non corretto o non esiste']);
             return;
         }
-            
-        echo json_encode(['message' => 'account aggiornato']);
+
+        http_response_code(200);
+        echo json_encode(['data' => $risultato]);
+        //echo json_encode(['message' => 'account aggiornato']);
     }
 
     /* Implementata SENZA SICUREZZA con JWT */
@@ -95,11 +101,12 @@ class UtentiController {
 
         if ($risultato === false) {
             http_response_code(404);
-            echo json_encode(['message' => 'Account non eliminato a causa di un errore / non esiste o non sei utente non corretto']);
+            //echo json_encode(['message' => 'Account non eliminato a causa di un errore / non esiste o non sei utente non corretto']);
             return;
         }
-            
-        echo json_encode(['message' => 'Account eliminato']); 
+
+        http_response_code(204);
+        //echo json_encode(['message' => 'Account eliminato']); 
     }
     
 }

@@ -12,19 +12,20 @@ class DispenseController {
     public function select($id = null) { 
         // l'utente non dovrebbe poterle leggere tutte, rimuovere successivamente
         if($id === null){ // senza id
-            echo json_encode(['error' => 'Richiesta non esistente per questo model']);
+            http_response_code(404);
+            //echo json_encode(['error' => 'Richiesta non esistente per questo model']);
             return;
-
         } else { //con id
             //richiesta solo alimenti dell'user
             $result = $this->model->readByUserId($id);
 
-            if (empty($result)) {
+            if(empty($result)) {
                 http_response_code(404);
-                echo json_encode(['message' => 'Nessuna dispensa trovata']);
+                // echo json_encode(['message' => 'Nessuna dispensa trovata']);
                 return;
             }
             
+            http_response_code(200);
             echo json_encode(['data' => $result]);
         }
     }
@@ -39,13 +40,15 @@ class DispenseController {
             //richiesta di creazione dispensa
             $risultato = $this->model->create();
 
-            if ($risultato === false) {
+            if(empty($risultato)){
                 http_response_code(404);
-                echo json_encode(['message' => 'Dispensa non aggiunta a causa di un errore']);
+                // echo json_encode(['message' => 'Nessuna dispensa trovata']);
                 return;
             }
             
-            echo json_encode(['message' => 'Dispensa aggiunta']);
+            http_response_code(200);
+            echo json_encode(['data' => $risultato]);
+            //echo json_encode(['message' => 'Dispensa aggiunta']);
     }
 
     // Update della dispensa, ne modifica il nome
@@ -61,13 +64,15 @@ class DispenseController {
         //richiesta update account inviato dall'user
         $risultato = $this->model->update();
 
-        if ($risultato === false) {
+        if(empty($risultato)){
             http_response_code(404);
-            echo json_encode(['message' => 'Dispensa non aggiornata a causa di un errore / oppure la modifica è uguale al precedente alimento o utente non corretto o non esiste']);
+            //echo json_encode(['message' => 'Dispensa non aggiornata a causa di un errore / oppure la modifica è uguale al precedente alimento o utente non corretto o non esiste']);
             return;
         }
-            
-        echo json_encode(['message' => 'Dispensa aggiornata']);
+        
+        http_response_code(200);
+        echo json_encode(['data' => $risultato]);
+        //echo json_encode(['message' => 'Dispensa aggiornata']);
     }
 
     // elimina la dispensa tramite l'id della dispensa e l'utente che la possiede
@@ -83,11 +88,12 @@ class DispenseController {
 
         if ($risultato === false) {
             http_response_code(404);
-            echo json_encode(['message' => 'Dispensa non eliminata a causa di un errore / non esiste o non sei utente non corretto']);
+            //echo json_encode(['message' => 'Dispensa non eliminata a causa di un errore / non esiste o non sei utente non corretto']);
             return;
         }
-            
-        echo json_encode(['message' => 'Dispensa eliminata']); 
+        
+        http_response_code(204);
+        //echo json_encode(['message' => 'Dispensa eliminata']); 
     }
     
 }

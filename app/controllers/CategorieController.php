@@ -20,10 +20,11 @@ class CategorieController {
 
             if (empty($result)){
                 http_response_code(404);
-                echo json_encode(['message' => 'Nessuna categoria trovata']);
+                //echo json_encode(['message' => 'Nessuna categoria trovata']);
                 return;
             }
 
+            http_response_code(200);
             echo json_encode(['data' => $result]);
         }
     }

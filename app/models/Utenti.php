@@ -59,8 +59,7 @@ class Utenti{
             $email = strtolower(trim($this->email));
 
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                http_response_code(400);
-                echo json_encode(['error' => 'Email non valida']);
+                //echo json_encode(['error' => 'Email non valida']);
                 return false;
             }
 
@@ -71,9 +70,6 @@ class Utenti{
             
             //hash della password prima di salvarlo
             $password_hash = password_hash($this->password, PASSWORD_DEFAULT);
-            echo json_encode(['message' => 'email:'.$this->email]);
-            echo json_encode(['message' => 'password:'.$this->password]);
-            echo json_encode(['message' => 'nome: '.$this->nome]);
 
             //binding dei valori
             $stmt->bindValue(':email', $this->email);
@@ -117,23 +113,33 @@ class Utenti{
 
             //prendo la riga che contiene email e password nel db, così posso usarla per verificare la password
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            echo json_encode([$row]);
 
             if ($row){
                 // verifica della password (hashata nel DB)
                 //RIMUOVERE QUESTE LINEE!!!!!
                 if (password_verify($this->password, $row['password_hash'])) {
                     // AGGIUNGERE QUI GENERAZIONE TOKEN JWT, INVECE DI RITORNARE TRUE GLI METTI IL TOKEN E POI IL CONTROLLER LO MANDA CON JSON-ENCODE
-                    return true; //password corretta e login riuscito
+                    
+                    // restituisco all'utente nome, email e token (che avrà il suo id)
+                    
+                    // Una volta eseguita, se è andato tutto bene, ritorno la riga con l'id appena inserito
+                    
+                    // Rimuovo i dati sensibili dell'utente, mando solo email e nome per all'applicazione
+                    unset($row['id']);
+                    unset($row['password_hash']);
+
+                    return $row;
+
+                    //return true; //password corretta e login riuscito
                 } else {
                     // rimuovere questo: problema di sicurezza, l'utente non ha bisogno di sapere se sbaglia la password o l'utente altrimenti un malintenzionato potrebbe sapere che esiste un account con quel nome
-                    echo json_encode(["password errata"]);
-                    return false; // password errata
+                    //echo json_encode(["password errata"]);
+                    return; // password errata
                 }
             } else {
                 // rimuovere questo: problema di sicurezza, l'utente non ha bisogno di sapere se sbaglia la password o l'utente altrimenti un malintenzionato potrebbe sapere che esiste un account con quel nome
-                echo json_encode(["utente non trovato"]);
-                return false; // utente non trovato
+                //echo json_encode(["utente non trovato"]);
+                return; // utente non trovato
             }
 
         } catch (PDOException $e) {
@@ -147,6 +153,7 @@ class Utenti{
 
     /* Implementata SENZA SICUREZZA con JWT */
     public function update(){
+        try {
         /* SVILUPPARE DELETE CHE VERIFICA TRAMITE TOKEN JWT PRIMA DI FARE IL UPDATE
         */
 
@@ -184,17 +191,28 @@ class Utenti{
         }
 
         //eseguo la query
-        if($stmt->execute()){
-            
-            //Nel caso in cui l'id non esista per quell'utente o l'utente manda la richiesta per un id diverso dal suo
-            if($stmt->rowCount() < 1){
-                return false;
-            }
+        $stmt->execute();
 
-            return true;
-        } else {
-            printf("Errore %s. \n", $stmt->error);
-            return false;
+        //Nel caso in cui l'id non esista per quell'utente o l'utente manda la richiesta per un id diverso dal suo
+        if($stmt->rowCount() < 1){
+            return;
+        }
+
+        // Una volta eseguita, se è andato tutto bene, ritorno la riga con l'id appena inserito
+        $stmt = $this->conn->prepare("
+            SELECT nome, email
+            FROM utenti
+            WHERE id = :id
+        ");
+                
+        $stmt->bindValue(':id', $this->id);
+        $stmt->execute();
+                
+        //echo json_encode(['data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        } catch (PDOException $e){
+            return;
         }
     }
 

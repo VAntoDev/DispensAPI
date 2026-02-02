@@ -52,7 +52,19 @@ class Dispense{
             //eseguo la query
             $stmt->execute();
 
-            return true;
+            // Una volta eseguita, se è andato tutto bene, ritorno la riga con l'id appena inserito
+            $stmt = $this->conn->prepare("
+                SELECT id, nome
+                FROM dispense
+                WHERE id = :id
+            ");
+
+            $stmt->bindValue(':id', $this->conn->lastInsertId());
+            $stmt->execute();
+            
+            //echo json_encode(['data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         //se da un problema allora da errore e lo manda
         } catch (PDOException $e) {
@@ -61,44 +73,63 @@ class Dispense{
                 'sql'  => $query,
                 'msg'  => $e->getMessage()
         ]);
-            return false;
+            return;
         }
     }
 
     // per fare l'update prendo l'id della dispensa e l'utente id dal POST dell'utente
     public function update(){
-        $query = '
-            UPDATE ' . $this->table . ' 
-            SET 
-                nome = :nome
-            WHERE 
-                id = :id AND utente_id = :utente_id';
+        try{
+            $query = '
+                UPDATE ' . $this->table . ' 
+                SET 
+                    nome = :nome
+                WHERE 
+                    id = :id AND utente_id = :utente_id';
 
-        //prepare statement
-        $stmt = $this->conn->prepare($query);
+            //prepare statement
+            $stmt = $this->conn->prepare($query);
 
-        //pulisco i dati da caratteri speciali prima di inserirli nel db
-        $this->id = htmlspecialchars(strip_tags($this->id));
-        $this->nome = htmlspecialchars(strip_tags($this->nome));
-        $this->utente_id = htmlspecialchars(strip_tags($this->utente_id));
+            //pulisco i dati da caratteri speciali prima di inserirli nel db
+            $this->id = htmlspecialchars(strip_tags($this->id));
+            $this->nome = htmlspecialchars(strip_tags($this->nome));
+            $this->utente_id = htmlspecialchars(strip_tags($this->utente_id));
 
-        //binding dei parametri
-        $stmt->bindValue(':id', $this->id);        
-        $stmt->bindValue(':nome', $this->nome);
-        $stmt->bindValue(':utente_id', $this->utente_id);
-    
-        //eseguo la query
-        if($stmt->execute()){
-            
+            //binding dei parametri
+            $stmt->bindValue(':id', $this->id);        
+            $stmt->bindValue(':nome', $this->nome);
+            $stmt->bindValue(':utente_id', $this->utente_id);
+        
+            //eseguo la query
+            $stmt->execute();
+                
             //Nel caso in cui l'id non esista per quell'utente o l'utente manda la richiesta per un id diverso dal suo
-            if($stmt->rowCount() < 1){
-                return false;
+            if ($stmt->rowCount() < 1) {
+                // Nessuna riga aggiornata: id inesistente o non appartiene all'utente
+                http_response_code(404);
+                return;
             }
 
-            return true;
-        } else {
-            printf("Errore %s. \n", $stmt->error);
-            return false;
+            // Una volta eseguita, se è andato tutto bene, ritorno la riga con l'id appena inserito
+            $stmt = $this->conn->prepare("
+                SELECT id, nome
+                FROM dispense
+                WHERE id = :id
+            ");
+                
+            $stmt->bindValue(':id', $this->id);
+            $stmt->execute();
+                
+            //echo json_encode(['data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        } catch (PDOException $e) {
+            echo json_encode([
+                'step' => 'errore PDO',
+                'sql'  => $query,
+                'msg'  => $e->getMessage()
+        ]);
+            return;
         }
     }
 
