@@ -4,6 +4,11 @@
 class Router {
     public static function dispatch($db) {
 
+        // creo token JWT per l'utente
+        $auth = new Authorization($_ENV['JWT_SECRET_KEY']);
+        //$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        //$method = $_SERVER['REQUEST_METHOD'];
+
         $basePath = '/dispensAPI/public';  // cartella base del progetto
 
         //la richiesta è in $_SERVER['REQUEST_URI']
@@ -33,7 +38,6 @@ class Router {
         //i parametri li uso per distinguere: login, register, o id
         $param = $parts[1] ?? null;
 
-
         // costruisco il path del file del controller
         $controllerFile = __DIR__ . '/../controllers/' . $controllerName . '.php';
         
@@ -53,8 +57,28 @@ class Router {
         // Importante! Salvo il Metodo usato nella Richiesta, questo mi dirà quale funzione del Controller usare
         $httpMethod = $_SERVER['REQUEST_METHOD'];
 
+        $endpoint = $controllerName . '/' . $param;  // Es: "UtentiController/register"
+        $login_register = ($endpoint === 'UtentiController/register' || $endpoint === 'UtentiController/login');
+
+        // Protegge TUTTI gli endpoint tranne /login e /register
+        //sto ignorando il tipo di richiesta per ora
+        // se la richiesta non è di login o di register
+        if(!$login_register){
+            // allora verifica che il token mandato dall'utente nell'header sia giusto
+            $utente_id = $auth->protectEndpoint();
+            // se il token è corretto allora assegni l'id dell'utente al parametro da passare ai vari metodi
+            if($utente_id != false){
+                $param = $utente_id; //assegna utente id, così che gli altri metodi possano usare utente_id mentre login/register usano come parameter proprio 'login' o 'register' che serve a capire quale delle due azioni l'utente vuole compiere
+            } else {
+                // se c'è stato un errore nel codice di verifica del token allora esci
+                http_response_code(404);
+                return;
+            }
+        }
+        
         //DEVI MODIFICARE QUESTO PER FARE IN MODO CHE FUNZIONI CON users/42/alimenti (da controlleralimenti) che per ora non fai per sbrigarti.
         //Ora funziona con: http://localhost/dispensAPI/public/alimenti/1 però non va bene.
+        //$param corrispone sempre all'utente_id, tranne nel caso del login/register in cui indica il tipo di operazione
         switch ($httpMethod) {
             case 'GET':
                 $controller->select($param);

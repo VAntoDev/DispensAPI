@@ -18,9 +18,11 @@ class ScadenzeController {
 
         } else { //con id
             //richiesta solo alimenti dell'user
+            echo json_encode($id);
+
             $result = $this->model->readByUserId($id);
 
-            if (empty($result)) {
+            if (empty($result)){
                 http_response_code(404);
                 //echo json_encode(['message' => 'Nessuna scadenza trovata']);
                 return;
@@ -93,7 +95,7 @@ class ScadenzeController {
             //echo json_encode(['message' => 'Scadenza non eliminata a causa di un errore / non esiste o non sei utente non corretto']);
             return;
         }
-        
+
         http_response_code(204);
         //echo json_encode(['message' => 'Scadenza eliminata']); 
     }

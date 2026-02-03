@@ -11,6 +11,7 @@ class UtentiController {
 
     // Distinguo in base ai parametri se l'utente vuole fare il login o il register
     public function create($param){
+
         if($param == "login"){
             $this->login();
         } else if($param == "register"){
@@ -45,7 +46,7 @@ class UtentiController {
 
     private function login(){
             $data = json_decode(file_get_contents("php://input"), true);
-
+            
             $this->model->setEmail($data['email']);
             $this->model->setPassword($data['password']);
 
@@ -53,7 +54,7 @@ class UtentiController {
             $risultato = $this->model->login();
 
             if (empty($risultato)){
-                http_response_code(404);
+                http_response_code(401); // non autorizzat / credenziali sbagliate
                 //echo json_encode(['message' => 'Account non loginnato a causa di un errore']);
                 return;
             }
@@ -87,6 +88,7 @@ class UtentiController {
         echo json_encode(['data' => $risultato]);
         //echo json_encode(['message' => 'account aggiornato']);
     }
+    
 
     /* Implementata SENZA SICUREZZA con JWT */
     public function delete($param){

@@ -61,7 +61,7 @@ class Dispense{
 
             $stmt->bindValue(':id', $this->conn->lastInsertId());
             $stmt->execute();
-            
+
             //echo json_encode(['data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
 
             return $stmt->fetchAll(PDO::FETCH_ASSOC);

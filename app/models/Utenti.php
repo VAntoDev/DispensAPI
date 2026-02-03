@@ -68,7 +68,7 @@ class Utenti{
             // preparazione query
             $stmt = $this->conn->prepare($query);
             
-            //hash della password prima di salvarlo
+            //faccio hash della password prima di salvarlo
             $password_hash = password_hash($this->password, PASSWORD_DEFAULT);
 
             //binding dei valori
@@ -118,17 +118,41 @@ class Utenti{
                 // verifica della password (hashata nel DB)
                 //RIMUOVERE QUESTE LINEE!!!!!
                 if (password_verify($this->password, $row['password_hash'])) {
-                    // AGGIUNGERE QUI GENERAZIONE TOKEN JWT, INVECE DI RITORNARE TRUE GLI METTI IL TOKEN E POI IL CONTROLLER LO MANDA CON JSON-ENCODE
-                    
                     // restituisco all'utente nome, email e token (che avrà il suo id)
-                    
+                    echo json_encode("fino a qui k");
                     // Una volta eseguita, se è andato tutto bene, ritorno la riga con l'id appena inserito
                     
-                    // Rimuovo i dati sensibili dell'utente, mando solo email e nome per all'applicazione
-                    unset($row['id']);
-                    unset($row['password_hash']);
+                    //creazione del token
+                    //creo l'oggetto passandogli la secret key che è in .env
+                    $auth = new Authorization($_ENV['JWT_SECRET_KEY']);
+                    echo json_encode("sono prima di generate token");
+                    // genero il token, mettendo nel payload l'id dell'utente
+                    $token = $auth->generateToken($row['id']);
+                    echo json_encode("sono dopo generate token");
 
-                    return $row;
+                    // errore di generazione token
+                    if($token == null){
+                        return;
+                    }
+                    // risposta che mando all'utente
+                    $response = [
+                        'success' => true,
+                        'user' => [
+                            'email' => $row['email'],
+                            'nome' => $row['nome']
+                        ],
+                        'token' => $token
+                    ];
+
+                    //usare generate token passando $row['id'] e 2 (che è il numero di ore per cui rimane valido)
+                    //mettere il token con set dentro la row così lo passa all'utente
+
+                    // Rimuovo i dati sensibili dell'utente, mando solo email e nome e token per all'applicazione
+                    //unset($row['id']);
+                    //unset($row['password_hash']);
+
+                    // ritorno il json da mandare all'utente
+                    return $response;
 
                     //return true; //password corretta e login riuscito
                 } else {
