@@ -11,6 +11,7 @@ class Unita_Misura{
 
     //legge i record del database
     public function read(){
+
         //creo la query, questa 
         $query = '
         SELECT 

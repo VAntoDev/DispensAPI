@@ -119,16 +119,14 @@ class Utenti{
                 //RIMUOVERE QUESTE LINEE!!!!!
                 if (password_verify($this->password, $row['password_hash'])) {
                     // restituisco all'utente nome, email e token (che avrà il suo id)
-                    echo json_encode("fino a qui k");
                     // Una volta eseguita, se è andato tutto bene, ritorno la riga con l'id appena inserito
                     
                     //creazione del token
                     //creo l'oggetto passandogli la secret key che è in .env
                     $auth = new Authorization($_ENV['JWT_SECRET_KEY']);
-                    echo json_encode("sono prima di generate token");
+
                     // genero il token, mettendo nel payload l'id dell'utente
                     $token = $auth->generateToken($row['id']);
-                    echo json_encode("sono dopo generate token");
 
                     // errore di generazione token
                     if($token == null){

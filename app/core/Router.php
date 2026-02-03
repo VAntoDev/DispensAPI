@@ -44,7 +44,7 @@ class Router {
         //controllo se il file esiste, se non esiste non si va avanti
         if (!file_exists($controllerFile)) {
             http_response_code(404);
-            echo json_encode(['error' => 'Controller non trovato']);
+            echo json_encode(['error' => 'Richiesta non valida: Controller non trovato']);
             return;
         }
         
@@ -75,7 +75,7 @@ class Router {
                 return;
             }
         }
-        
+
         //DEVI MODIFICARE QUESTO PER FARE IN MODO CHE FUNZIONI CON users/42/alimenti (da controlleralimenti) che per ora non fai per sbrigarti.
         //Ora funziona con: http://localhost/dispensAPI/public/alimenti/1 però non va bene.
         //$param corrispone sempre all'utente_id, tranne nel caso del login/register in cui indica il tipo di operazione

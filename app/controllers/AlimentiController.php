@@ -9,12 +9,14 @@ class AlimentiController {
         $this->model = new Alimenti($db); // $db viene da config.php
     }
 
-    public function select($id = null) { 
+    public function select($id_utente = null) { 
         //uso il fatto che c'è l'id o no per distinguere il tipo di azione che vuole fare l'utente
         //se vuole avere tutti gli alimenti non mette nessun id (null), se vuole sapere i suoi alimenti mette il proprio id ($id)
         //richiesta di tutti gli alimenti (da rimuovere successivamente perché non serve)
-        if($id === null){ // senza id
+        if($id_utente === null){ // senza id
+            //ho deciso di non usare questo metodo read() per questa applicazione. La lascio in caso cambiassi idea
             //richiesta tutti gli alimenti nella tabella
+            
             $alimenti = $this->model->read();
 
             if (empty($alimenti)) {
@@ -28,7 +30,8 @@ class AlimentiController {
 
         } else { //con id
             //richiesta solo alimenti dell'user
-            $alimenti = $this->model->readByUserId($id);
+
+            $alimenti = $this->model->readByUserId($id_utente);
 
             if (empty($alimenti)) {
                 http_response_code(404);
@@ -41,7 +44,7 @@ class AlimentiController {
         }
 }
 
-    public function create($param){
+    public function create($id_utente){
             // Questa funzione prende $param per uniformarla alle altre e quelle degli altri controller. Ma non ha bisogno di usarlo.
 
             //Prendo i dati dalla POST request
@@ -78,7 +81,7 @@ class AlimentiController {
             $this->model->setCategoriaId($_POST['categoria_id'] ?? null);
             $this->model->setQuantita($_POST['quantita'] ?? null);
             $this->model->setUnitaId($_POST['unita_id'] ?? null);
-            $this->model->setUtenteId($_POST['utente_id'] ?? null);
+            $this->model->setUtenteId($id_utente ?? null);
 
             //richiesta creazione alimento inviato dall'user
             $risultato = $this->model->create();
@@ -93,7 +96,7 @@ class AlimentiController {
             echo json_encode(['data' => $risultato]);
     }
 
-    public function update(){
+    public function update($id_utente){
         //leggo il body raw della richiesta PUT
         $data = json_decode(file_get_contents("php://input"), true);
 
@@ -102,7 +105,7 @@ class AlimentiController {
         $this->model->setCategoriaId($data['categoria_id'] ?? null);
         $this->model->setQuantita($data['quantita'] ?? null);
         $this->model->setUnitaId($data['unita_id'] ?? null);
-        $this->model->setUtenteId($data['utente_id'] ?? null);
+        $this->model->setUtenteId($id_utente ?? null);
 
         //richiesta creazione alimento inviato dall'user
         $risultato = $this->model->update();
@@ -118,12 +121,12 @@ class AlimentiController {
         //echo json_encode(['message' => 'Alimento aggiornato']);    
     }
 
-    public function delete(){
+    public function delete($id_utente){
         //leggo il body raw della richiesta PUT
         $data = json_decode(file_get_contents("php://input"), true);
 
         $this->model->setId($data['id'] ?? null);
-        $this->model->setUtenteId($data['utente_id'] ?? null);
+        $this->model->setUtenteId($id_utente ?? null);
 
         //richiesta creazione alimento inviato dall'user
         $risultato = $this->model->delete();

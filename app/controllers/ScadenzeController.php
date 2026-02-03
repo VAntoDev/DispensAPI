@@ -9,18 +9,16 @@ class ScadenzeController {
         $this->model = new Scadenze($db); // $db viene da config.php
     }
 
-    public function select($id = null) { 
+    public function select($id_utente = null) { 
         // l'utente non dovrebbe poterle leggere tutte, rimuovere successivamente
-        if($id === null){ // senza id
+        if($id_utente === null){ // senza id
             http_response_code(404);
             //echo json_encode(['error' => 'Richiesta non esistente per questo model']);
             return;
 
         } else { //con id
             //richiesta solo alimenti dell'user
-            echo json_encode($id);
-
-            $result = $this->model->readByUserId($id);
+            $result = $this->model->readByUserId($id_utente);
 
             if (empty($result)){
                 http_response_code(404);
@@ -34,10 +32,10 @@ class ScadenzeController {
     }
     
     // Crea scadenza
-    public function create(){
+    public function create($id_utente){
             $data = json_decode(file_get_contents("php://input"), true);
 
-            $this->model->setUtenteId($data['utente_id']);
+            $this->model->setUtenteId($id_utente);
             $this->model->setDispensaId($data['dispensa_id']);
             $this->model->setAlimentoId($data['alimento_id']);
             $this->model->setDataScadenza($data['data_scadenza']);
@@ -80,12 +78,12 @@ class ScadenzeController {
         */
 
     // elimina la scadenza tramite l'id della scadenza e l'utente che la possiede
-    public function delete($param){
+    public function delete($id_utente){
         //leggo il body raw della richiesta PUT
         $data = json_decode(file_get_contents("php://input"), true);
 
-        $this->model->setId($data['id'] ?? null);
-        $this->model->setUtenteId($data['utente_id'] ?? null);
+        $this->model->setId($data['id']);
+        $this->model->setUtenteId($id_utente);
 
         //richiesta eliminazione account inviata dall'user
         $risultato = $this->model->delete();

@@ -64,13 +64,12 @@ class UtentiController {
             //echo json_encode(['message' => 'Account loginnato correttamente']);
     }
 
-    /* Implementata SENZA SICUREZZA con JWT */
-    public function update($param){
+    public function update($id_utente){
         
         //leggo il body raw della richiesta PUT
         $data = json_decode(file_get_contents("php://input"), true);
 
-        $this->model->setId($data['id'] ?? null);
+        $this->model->setId($id_utente ?? null);
         $this->model->setNome($data['nome'] ?? null);
         $this->model->setEmail($data['email'] ?? null);
         $this->model->setPassword($data['password'] ?? null);
@@ -90,13 +89,12 @@ class UtentiController {
     }
     
 
-    /* Implementata SENZA SICUREZZA con JWT */
-    public function delete($param){
+    public function delete($id_utente){
         
         //leggo il body raw della richiesta PUT
         $data = json_decode(file_get_contents("php://input"), true);
 
-        $this->model->setId($data['id'] ?? null);
+        $this->model->setId($id_utente ?? null);
 
         //richiesta eliminazione account inviata dall'user
         $risultato = $this->model->delete();

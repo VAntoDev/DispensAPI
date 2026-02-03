@@ -26,6 +26,8 @@ class Alimenti{
 
     //legge i record del database
     public function read(){
+        //Ho deciso di non usare questa funzione per Alimenti poiché non la userei nell'applicazione
+        return;
         //creo la query, questa 
         $query = '
         SELECT 
@@ -63,7 +65,7 @@ class Alimenti{
     }
 
     //prende tutti gli alimenti di un utente dal database
-        public function readByUserId(int $id) {
+        public function readByUserId($id_utente) {
         $query = '
             SELECT 
             a.id,
@@ -85,7 +87,7 @@ class Alimenti{
         //prepara la query
         $stmt = $this->conn->prepare($query);
         //mette il valore dell'utente in base a ciò che è stato passato alla funzione (lo mette qui e non nella query per evitare SQL injection)
-        $stmt->bindValue(':utente_id', $id, PDO::PARAM_INT);
+        $stmt->bindValue(':utente_id', $id_utente, PDO::PARAM_INT);
         //esegue la query
         $stmt->execute();
 

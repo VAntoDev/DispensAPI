@@ -9,7 +9,8 @@ class Authorization {
     }
     
     // Genera token JWT per utente loggato
-    public function generateToken($utente_id, $exp_hours = 1) {
+    // metto 48 ore al token per il testing
+    public function generateToken($utente_id, $exp_hours = 48) {
         try{
             $payload = [
                 'iss' => 'dispensAPI',      // issuer
@@ -20,7 +21,6 @@ class Authorization {
             ];
            
             $header = $this->base64url_encode(json_encode(['typ' => 'JWT', 'alg' => $this->algorithm]));
-            echo json_encode("Sono nella funzione");
             $payload_enc = $this->base64url_encode(json_encode($payload));
             $signature = $this->createSignature($header, $payload_enc); // crea la signature tramite la chiave segreta
             
