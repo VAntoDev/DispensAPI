@@ -1,6 +1,8 @@
 <?php
+// Unita_Misura.php : si occupa di gestire le unità di misura, non sono specifiche di un utente perché queste sono condivise tra tutti gli utenti
+
 class Unita_Misura{
-    //cose database
+    //proprietà database
     private $conn;
     private $table = 'unita_misura'; //verranno letti dalla tabella alimenti
 
@@ -12,7 +14,7 @@ class Unita_Misura{
     //legge i record del database
     public function read(){
 
-        //creo la query, questa 
+        //creo la query
         $query = '
         SELECT 
             id,
@@ -20,13 +22,14 @@ class Unita_Misura{
             simbolo
         FROM unita_misura';
 
-        //try catch per la query
+        //prepare ad esegue la query
         try{
             $stmt = $this->conn->prepare($query);
             $stmt->execute();
 
         } catch (PDOException $e){
-            echo "errore PDO: " . $e->getMessage();
+            // se lo statement da errore non continuo le operazioni
+            return;
         }
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

@@ -3,9 +3,9 @@
 // Dispense.php : si occupa di gestire le dispense dell'utente. L'utente passa: nome della dispensa e il suo id.
 
 class Scadenze{
-    //cose database
+    //prorietà database
     private $conn;
-    private $table = 'scadenze'; //verranno letti dalla tabella alimenti
+    private $table = 'scadenze'; //verranno letti dalla tabella scadenze
 
     //proprietà scadenza
     private $id;
@@ -36,14 +36,10 @@ class Scadenze{
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /*
-    L'utente deve settare:
-    utente_id, dispensa, alimento, data di scadenza. della scadenza
-    */
+    //L'utente crea la scadenza nel db
     public function create(){
         try {
             //query
-            
             //Controllo che le FK relative all'utente esistano ovvero che: alimento_id e dispensa_id siano legate all'utente
             $query = "
                 SELECT 1 FROM dispense d
@@ -53,12 +49,14 @@ class Scadenze{
                 AND a.utente_id = :utente_alimento_id
             ";
             
+            //prepare della query e assegnazione dei valori
             $stmt = $this->conn->prepare($query);
             $stmt->bindValue(':utente_dispensa_id', $this->utente_id);
             $stmt->bindValue(':utente_alimento_id', $this->utente_id);
             $stmt->bindValue(':dispensa_id', $this->dispensa_id);
             $stmt->bindValue(':alimento_id', $this->alimento_id);
 
+            //esecuzione della query e salvataggio del risultato in row, per controllare che il risultato sia di quell'utente e non di qualcun altro
             $stmt->execute();
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -92,24 +90,59 @@ class Scadenze{
 
             $stmt->bindValue(':id', $this->conn->lastInsertId());
             $stmt->execute();
-            
-            //echo json_encode(['data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
 
+            //ritorno di array associativo con la riga ricavata dal select
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         //se da un problema allora da errore e lo manda
         } catch (PDOException $e) {
-            /*
-            echo json_encode([
-                'step' => 'errore PDO',
-                'sql'  => $query,
-                'msg'  => $e->getMessage()
-        ]);*/
             return;
         }
     }
 
-    // per fare l'update prendo l'id della scadenza e l'utente id dal POST dell'utente
+    public function delete(){
+        //usiamo INSERT SET, così possiamo usare :nome e :categoria come parametri bindati nel prepared statement
+        $query = 'DELETE FROM ' . $this->table . ' WHERE id = :id AND utente_id = :utente_id';
+        //prepare statement
+        $stmt = $this->conn->prepare($query);
+        //pulisco i dati da caratteri speciali prima di inserirli nel db
+        $this->id = htmlspecialchars(strip_tags($this->id));
+        $this->utente_id = htmlspecialchars(strip_tags($this->utente_id));
+        //binding dei parametri
+        $stmt->bindValue(':id', $this->id);
+        $stmt->bindValue(':utente_id', $this->utente_id);
+
+        //eseguo la query
+        if($stmt->execute()){
+            
+            //Nel caso in cui l'id non esista per quell'utente o l'utente manda la richiesta per un id diverso dal suo
+            if($stmt->rowCount() < 1){
+                return false;
+            }
+
+            return true;
+        } else { //ritorno false se lo statement da errore
+            return false;
+        }   
+    }
+
+    // getter
+    public function getId() { return $this->id; }
+    public function getUtenteId() { return $this->utente_id; }
+    public function getDispensaId() { return $this->dispensa_id; }
+    public function getAlimentoId() { return $this->alimento_id; }
+    public function getDataScadenza() { return $this->data_scadenza; }
+
+    // setter
+    public function setId($id) { $this->id = $id; }
+    public function setUtenteId($utente_id) { $this->utente_id = $utente_id; }
+    public function setDispensaId($dispensa_id) { $this->dispensa_id = $dispensa_id; }
+    public function setAlimentoId($alimento_id) { $this->alimento_id = $alimento_id; }
+    public function setDataScadenza($data_scadenza) { $this->data_scadenza = $data_scadenza; }
+
+}
+
+ // per fare l'update prendo l'id della scadenza e l'utente id dal POST dell'utente
     // ho deciso che non c'è bisogno di poter modificare una scadenza, al massimo si può eliminare da parte dell'utente e poi ne crea lui un'altra
     /*
     public function update(){
@@ -153,47 +186,4 @@ class Scadenze{
         }
     }
     */
-
-    public function delete(){
-        //usiamo INSERT SET, così possiamo usare :nome e :categoria come parametri bindati nel prepared statement
-        $query = 'DELETE FROM ' . $this->table . ' WHERE id = :id AND utente_id = :utente_id';
-        //prepare statement
-        $stmt = $this->conn->prepare($query);
-        //pulisco i dati da caratteri speciali prima di inserirli nel db
-        $this->id = htmlspecialchars(strip_tags($this->id));
-        $this->utente_id = htmlspecialchars(strip_tags($this->utente_id));
-        //binding dei parametri
-        $stmt->bindValue(':id', $this->id);
-        $stmt->bindValue(':utente_id', $this->utente_id);
-
-        //eseguo la query
-        if($stmt->execute()){
-            
-            //Nel caso in cui l'id non esista per quell'utente o l'utente manda la richiesta per un id diverso dal suo
-            if($stmt->rowCount() < 1){
-                return false;
-            }
-
-            return true;
-        } else {
-            printf("Errore %s. \n", $stmt->error);
-            return false;
-        }   
-    }
-
-    // getter
-    public function getId() { return $this->id; }
-    public function getUtenteId() { return $this->utente_id; }
-    public function getDispensaId() { return $this->dispensa_id; }
-    public function getAlimentoId() { return $this->alimento_id; }
-    public function getDataScadenza() { return $this->data_scadenza; }
-
-    // setter
-    public function setId($id) { $this->id = $id; }
-    public function setUtenteId($utente_id) { $this->utente_id = $utente_id; }
-    public function setDispensaId($dispensa_id) { $this->dispensa_id = $dispensa_id; }
-    public function setAlimentoId($alimento_id) { $this->alimento_id = $alimento_id; }
-    public function setDataScadenza($data_scadenza) { $this->data_scadenza = $data_scadenza; }
-
-}
 ?>

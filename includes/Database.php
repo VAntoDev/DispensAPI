@@ -1,5 +1,4 @@
 <?php
-
 // Database : Gestisce la connessione con il database, prende variabili d'ambiente da un file separato per non salvare in chiaro
 class Database {
     private $conn;
@@ -15,7 +14,7 @@ class Database {
                     [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
                 );
 
-                //DB Attributes setting
+                //DB Attributes impostazioni
                 //Disattiva i prepare emulati, così da maggiore protezione dalle sql injection
                 $this->conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
                 

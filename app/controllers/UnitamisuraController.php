@@ -8,7 +8,8 @@ class UnitamisuraController {
         //creo una istanza della classe alimenti, passandole la connessione al db (come richiesto dalla classe stessa)
         $this->model = new Unita_Misura($db); // $db viene da config.php
     }
-
+    
+    //Visualizza e manda le unitamisura salvate nel db, esse non appartegono a nessun utente in particolare
     public function select() { 
         //Sostituisco la cache messa inizialmente nell'index come no store perché questa risorsa è uguale per tutti gli utenti e non cambia quasi mai, così l'utente genera meno richieste per questa risorsa
         header('Cache-Control: public, max-age=3600'); // cacheabile per 1h

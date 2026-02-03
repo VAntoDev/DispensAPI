@@ -1,12 +1,9 @@
 <?php
 // Alimenti.php : essendo un Model, si occupa di gestire solo le interazioni con il DB
 
-// questa è il tipo di alimento, non un oggetto specifico dell'alimento
-
-//AGGIUNGI QUERY DINAMICHE E NON COME SONO ORA.
-//CAMBIA LE VARIABILI IN PRIVATE E CREA SETTER E GETTER
+// Questo è il tipo di alimento, non un oggetto specifico dell'alimento (quella sarebba una scadenza)
 class Alimenti{
-    //cose database
+    //proprietà database
     private $conn;
     private $table = 'alimenti'; //verranno letti dalla tabella alimenti
 
@@ -28,7 +25,7 @@ class Alimenti{
     public function read(){
         //Ho deciso di non usare questa funzione per Alimenti poiché non la userei nell'applicazione
         return;
-        //creo la query, questa 
+        //creo la query
         $query = '
         SELECT 
             a.id,
@@ -43,10 +40,8 @@ class Alimenti{
         LEFT JOIN categorie c ON a.categoria_id = c.id
         ORDER BY a.id DESC';
         
-        //prepare statement
         //invia la query a mysql, così la analizza e prepara, poi ritorna un PDOStatement
-        
-        //try catch per la query
+        //prepare ed esegue la queyry
         try{
             $stmt = $this->conn->prepare($query);
             $stmt->execute();
@@ -60,7 +55,6 @@ class Alimenti{
         //il result set viene creato e le righe vengono salvate dentro l'oggetto PDOStatement
         //ritorna true se va bene, false se da errore
 
-        //return $stmt;
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -86,7 +80,7 @@ class Alimenti{
 
         //prepara la query
         $stmt = $this->conn->prepare($query);
-        //mette il valore dell'utente in base a ciò che è stato passato alla funzione (lo mette qui e non nella query per evitare SQL injection)
+        //mette il valore dell'utente in base a ciò che è stato passato al metodo (lo mette qui e non nella query per evitare SQL injection)
         $stmt->bindValue(':utente_id', $id_utente, PDO::PARAM_INT);
         //esegue la query
         $stmt->execute();
@@ -95,19 +89,7 @@ class Alimenti{
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-
-    //aggiunge uno o più record tramite l'API
-    //qui uso categoria_id perché categoria l'ho sempre usato per il nome con il left join ma non avrei dovuto farlo...
-
-    /*
-    L'utente deve settare:
-    public $nome;
-    public $categoria_id;
-    public $immagine;
-    public $quantita;
-    public $unita_id;
-    public $utente_id;
-    */
+    //Crea un alimento ad un utente sul db
     public function create(){
         try {
             //query
@@ -118,7 +100,6 @@ class Alimenti{
             //binding dei valori
             $stmt->bindValue(':nome', $this->nome);
             $stmt->bindValue(':categoria_id', $this->categoria_id);
-            //$stmt->bindValue(':percorso_immagine', $this->percorso_immagine);
             $stmt->bindValue(':quantita', $this->quantita);
             $stmt->bindValue(':unita_id', $this->unita_id);
             $stmt->bindValue(':utente_id', $this->utente_id);
@@ -129,23 +110,20 @@ class Alimenti{
             //prendo l'id dell'alimento appena aggiunto
             $alimentoId = $this->conn->lastInsertId();
 
-            // Salvo l'immagine
+            //Salvo l'immagine
             try {
                 if($this->percorso_immagine != null){
                     $percorso = $this->salvaImmagine($_FILES['immagine']);
                     $this->percorso_immagine = $percorso;
                 } else {
                     //immagine null
-                    //echo json_encode(["Percorso" => "immagine null, la carico come NULL"]);
                 }
             } catch (RuntimeException $e){
                 //400 in questo caso è "errore del client nel mandare l'immagine"
-                //echo json_encode(['error' => $e->getMessage()]);
                 return;
             }
             
-            //echo json_encode(['data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
-
+            //Update che aggiunge il percorso dell'immagine, perché va fatto solo dopo che è stato creato sul pc e la query che aggiunge l'alimento è andata a buon fine
             $query = "UPDATE alimenti SET percorso_immagine = :percorso_immagine WHERE id = :id";
             $stmt = $this->conn->prepare($query);
             $stmt->bindValue(':percorso_immagine', $this->percorso_immagine);
@@ -162,29 +140,18 @@ class Alimenti{
             $stmt->bindValue(':id', $alimentoId);
             $stmt->execute();
 
+            //ritorno le righe ricavate dalla select tramite un array associativo
             return $stmt->fetchAll(PDO::FETCH_ASSOC);            
 
-        //se da un problema allora da errore e lo manda
+        //se da un problema allora errore, non continua le operazioni
         } catch (PDOException $e) {
-            /*echo json_encode([
-                'step' => 'errore PDO',
-                'sql'  => $query,
-                'msg'  => $e->getMessage()
-            
-        ]);*/
             return;
         }
     }
 
-    //AGGIORNARE UPDATE E DELETE CHE FUNZIONANO ANCORA COME LA VECCHIA TEST-REST CHE HAI FATTO
-        //la logica dietro create e update è molto simile, quindi possiamo usare il create come base
-        //update alimento
+    //Aggiorna un alimento ad un utente sul db
     public function update(){
         //usiamo INSERT SET, così possiamo usare :nome e :categoria come parametri bindati nel prepared statement
-        //vecchio update
-        //$query = 'UPDATE ' . $this->table . ' SET nome = :nome, categoria_id = :categoria_id
-        //WHERE id = :id';
-
         //limitazione: l'immagine non si può cambiare.
         $query = '
             UPDATE ' . $this->table . ' 
@@ -198,6 +165,7 @@ class Alimenti{
 
         //prepare statement
         $stmt = $this->conn->prepare($query);
+        
         //pulisco i dati da caratteri speciali prima di inserirli nel db
         $this->nome = htmlspecialchars(strip_tags($this->nome));
         $this->categoria_id = htmlspecialchars(strip_tags($this->categoria_id));
@@ -232,13 +200,14 @@ class Alimenti{
             $stmt->bindValue(':id', $this->id);
             $stmt->execute();
 
+            //ritorno le righe della select tramite un array associativo
             return $stmt->fetchAll(PDO::FETCH_ASSOC);  
-        } else {
-            //echo json_encode(['error' => "Errore %s. \n", $stmt->error]);
+        } else { // se da errore lo statement non continua le operazioni
             return;
         }
     }
 
+    //Elimina un alimento di un utente dal db
     public function delete(){
         //usiamo INSERT SET, così possiamo usare :nome e :categoria come parametri bindati nel prepared statement
         $query = 'DELETE FROM ' . $this->table . ' WHERE id = :id AND utente_id = :utente_id';
@@ -259,13 +228,13 @@ class Alimenti{
                 return false;
             }
 
-            return true;
-        } else {
-            printf("Errore %s. \n", $stmt->error);
+            return true; //statement andato a buon fine, elemento eliminato
+        } else { //se da errore il lo statement non continuo le operazioni
             return false;
         }   
     }
 
+    //Salva le immagini all'interno del server, ritornando il percorso relativo a cui sono state salvate
     public function salvaImmagine(array $file): string {
         $uploadDir = __DIR__ . '/../../public/uploads/alimenti/';
 
@@ -281,6 +250,7 @@ class Alimenti{
         //controllo che l'immagine sia solo del tipo che voglio, altrimenti formato non valido
         $mime = mime_content_type($file['tmp_name']);
 
+        //definisco i tipi di formati accettati
         $ext = match ($mime) {
             'image/jpeg' => '.jpg',
             'image/png'  => '.png',
@@ -288,12 +258,15 @@ class Alimenti{
             default      => throw new RuntimeException('Formato non valido'),
         };
 
+        //genero un id unico per ogni file
         $filename = uniqid('img_', true) . $ext;
 
+        //muovo il file all'interno della cartella uploads in cui sono salvate le immagini dell'utente
         if (!move_uploaded_file($file['tmp_name'], $uploadDir . $filename)) {
             throw new RuntimeException('Errore nel salvataggio file');
         }
 
+        //ritorno il percorso relativo dell'immagine
         return '/uploads/alimenti/' . $filename;
     }
 

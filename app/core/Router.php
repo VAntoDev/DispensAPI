@@ -1,13 +1,11 @@
 <?php
 // Router serve a parsare lo URI nella richiesta e scegliere il controller che la andrà a gestire in base alle informazioni estrapolate
-// Ricorda: il body della richiesta non è in $_SERVER, ci possono accedere anche le altre classi perché andrà su un flusso specifico (controlla appunti)
+// Inoltre, il router usa Authorization così che un utente possa usare una determinata operazione soltanto se ha un token JWT valido e non scaduto
 class Router {
     public static function dispatch($db) {
 
         // creo token JWT per l'utente
         $auth = new Authorization($_ENV['JWT_SECRET_KEY']);
-        //$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-        //$method = $_SERVER['REQUEST_METHOD'];
 
         $basePath = '/dispensAPI/public';  // cartella base del progetto
 
@@ -35,7 +33,7 @@ class Router {
         }
 
         //Salvo il parametro da dare al controller,se  non c'è un parametro allora è null
-        //i parametri li uso per distinguere: login, register, o id
+        //i parametri li uso per distinguere: login, register, o id dell'utente
         $param = $parts[1] ?? null;
 
         // costruisco il path del file del controller
@@ -48,21 +46,18 @@ class Router {
             return;
         }
         
-        // Include sul nome del file per poterlo usare
-        //forse non serve più?
-        require_once $controllerFile;
-        
+        //creo l'istanza del controller per poterne chiamare le funzioni
         $controller = new $controllerName($db);
 
         // Importante! Salvo il Metodo usato nella Richiesta, questo mi dirà quale funzione del Controller usare
         $httpMethod = $_SERVER['REQUEST_METHOD'];
 
-        $endpoint = $controllerName . '/' . $param;  // Es: "UtentiController/register"
+        //creo due linee che corrispondano alle operazioni del controller Utenti: login e register
+        $endpoint = $controllerName . '/' . $param;  // esempio "UtentiController/register"
         $login_register = ($endpoint === 'UtentiController/register' || $endpoint === 'UtentiController/login');
 
-        // Protegge TUTTI gli endpoint tranne /login e /register
-        //sto ignorando il tipo di richiesta per ora
-        // se la richiesta non è di login o di register
+        //Protegge TUTTI gli endpoint tranne /login e /register
+        //se la richiesta non è di login o di register
         if(!$login_register){
             // allora verifica che il token mandato dall'utente nell'header sia giusto
             $utente_id = $auth->protectEndpoint();
@@ -76,8 +71,6 @@ class Router {
             }
         }
 
-        //DEVI MODIFICARE QUESTO PER FARE IN MODO CHE FUNZIONI CON users/42/alimenti (da controlleralimenti) che per ora non fai per sbrigarti.
-        //Ora funziona con: http://localhost/dispensAPI/public/alimenti/1 però non va bene.
         //$param corrispone sempre all'utente_id, tranne nel caso del login/register in cui indica il tipo di operazione
         switch ($httpMethod) {
             case 'GET':
@@ -97,8 +90,8 @@ class Router {
                 break;
 
             default:
+                //se il tipo di metodo HTTP non è supportato da errore 405 Method Not Allowed
                 http_response_code(405);
-                echo json_encode(['error' => 'Metodo HTTP non supportato']);
         }
     }
 }

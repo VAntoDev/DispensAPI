@@ -1,11 +1,10 @@
 <?php
-// Mi serve che l'utente passi: utente_id e nome della dispensa
 // Dispense.php : si occupa di gestire le dispense dell'utente. L'utente passa: nome della dispensa e il suo id.
 
 class Dispense{
-    //cose database
+    //proprietà database
     private $conn;
-    private $table = 'dispense'; //verranno letti dalla tabella alimenti
+    private $table = 'dispense'; //verranno letti dalla tabella dispense
 
     //proprietà dispensa
     private $id;
@@ -34,10 +33,7 @@ class Dispense{
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /*
-    L'utente deve settare:
-    $nome, $id. della dispensa
-    */
+    // Crea la dispensa nel db
     public function create(){
         try {
             //query
@@ -62,22 +58,15 @@ class Dispense{
             $stmt->bindValue(':id', $this->conn->lastInsertId());
             $stmt->execute();
 
-            //echo json_encode(['data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
-
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        //se da un problema allora da errore e lo manda
+        //se c'è un problema allora da errore
         } catch (PDOException $e) {
-            echo json_encode([
-                'step' => 'errore PDO',
-                'sql'  => $query,
-                'msg'  => $e->getMessage()
-        ]);
             return;
         }
     }
 
-    // per fare l'update prendo l'id della dispensa e l'utente id dal POST dell'utente
+    //Aggiorna una dispensa dell'utente dal db
     public function update(){
         try{
             $query = '
@@ -120,19 +109,14 @@ class Dispense{
             $stmt->bindValue(':id', $this->id);
             $stmt->execute();
                 
-            //echo json_encode(['data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
-
+        //Se c'è un problema non ritorna nulla, così il controller manda errore
         } catch (PDOException $e) {
-            echo json_encode([
-                'step' => 'errore PDO',
-                'sql'  => $query,
-                'msg'  => $e->getMessage()
-        ]);
             return;
         }
     }
 
+    //Elimina una dispensa dell'utente dal db
     public function delete(){
         //usiamo INSERT SET, così possiamo usare :nome e :categoria come parametri bindati nel prepared statement
         $query = 'DELETE FROM ' . $this->table . ' WHERE id = :id AND utente_id = :utente_id';
@@ -154,8 +138,7 @@ class Dispense{
             }
 
             return true;
-        } else {
-            printf("Errore %s. \n", $stmt->error);
+        } else { //errore nello statement, ritorno false
             return false;
         }   
     }
