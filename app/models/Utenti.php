@@ -21,11 +21,11 @@ class Utenti{
     //Crea un record per l'account dell'utente nel db
     public function register(){
         try {
-            //controllo base per sapere se l'mail è valida
-            $email = strtolower(trim($this->email));
+            //lowercase della mail per evitare problemi di caps
+            $this->email = strtolower(trim($this->email));
 
             //controlla se l'utente ha inviato una mail valida, se non lo è non può aggiungere il record e da errore
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            if (!filter_var($this->email, FILTER_VALIDATE_EMAIL)) {
                 return false;
             }
 
@@ -63,6 +63,9 @@ class Utenti{
                   FROM ' . $this->table . ' 
                   WHERE email = :email
                   LIMIT 1';
+
+            //tutto in lowercase, così adatto anche se ci sono caratteri con caps
+            $this->email = strtolower(trim($this->email));
 
             // preparazione statement
             $stmt = $this->conn->prepare($query);

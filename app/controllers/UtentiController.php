@@ -41,11 +41,13 @@ class UtentiController {
         //se il risultato è false allora l'user non è stato creato a causa di un errore nei dati o della query
         if ($risultato === false) {
             http_response_code(400);
+            echo json_encode(['error' => 'Registrazione fallita']);
             return;
         }
         
         //se la registrazione è andata a buon fine mando OK 200
         http_response_code(200);
+        echo json_encode(['success' => true, 'message' => 'Utente registrato con successo']);
     }
 
     //Permette il login dell'utente nella applicazione. Manda all'utente nome, email e token
@@ -64,6 +66,7 @@ class UtentiController {
         //se il risultato è un array vuoto, perché qualcosa è andato storto con la query / non ci sono righe / il login era sbagliato, allora errore 404
         if (empty($risultato)){
             http_response_code(401); // non autorizzato / credenziali sbagliate
+            echo json_encode(['error' => 'Login fallito']);
             return;
         }
 
