@@ -36,6 +36,7 @@ class AlimentiController {
             //se il risultato è un array vuoto, perché qualcosa è andato storto con la query / non ci sono righe, allora errore 404
             if (empty($alimenti)) {
                 http_response_code(404);
+                echo json_encode(['error' => 'GET Alimenti fallita']);
                 return;
             }
 
@@ -63,6 +64,7 @@ class AlimentiController {
             //se il risultato è un array vuoto, perché qualcosa è andato storto con la query / non ci sono righe, allora errore 404
             if (empty($risultato)) {
                 http_response_code(404);
+                echo json_encode(['error' => "POST Alimenti fallita"]);
                 return;
             }
 
@@ -90,6 +92,7 @@ class AlimentiController {
         //se il risultato è un array vuoto, perché qualcosa è andato storto con la query / non ci sono righe, allora errore 404
         if(empty($risultato)){
             http_response_code(404);
+            echo json_encode(['error' => "UPDATE Alimenti fallita"]);
             return;
         }
 
@@ -113,11 +116,13 @@ class AlimentiController {
         //se il risultato è un array vuoto, perché qualcosa è andato storto con la query / non ci sono righe, allora errore 404
         if ($risultato === false) {
             http_response_code(404);
+            echo json_encode(['error' => "DELETE Alimenti fallita"]);
             return;
         }
 
         //query andata a buon fine, codice 204 per "No Content"
         http_response_code(204);
+        echo json_encode(['data' => "Alimenti Eliminato"]);
     }
 }
 ?>

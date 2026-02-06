@@ -21,9 +21,31 @@ class Scadenze{
 
     //prende tutte le scadenze di un utente dal database
     public function readByUserId(int $utente_id) {
-        $query = 'SELECT id, utente_id, dispensa_id, alimento_id, data_scadenza
-                  FROM ' . $this->table . ' 
-                  WHERE utente_id = :utente_id';
+        $query = '
+            SELECT
+                s.id,
+                s.data_scadenza,
+                s.utente_id,
+
+                s.dispensa_id,
+                d.nome AS dispensa_nome,
+
+                a.id AS alimento_id,
+                a.nome AS alimento_nome,
+                a.percorso_immagine,
+                a.quantita,
+                a.categoria_id,
+                a.unita_id
+
+            FROM scadenze s
+            LEFT JOIN alimenti a ON s.alimento_id = a.id
+            LEFT JOIN dispense d ON s.dispensa_id = d.id
+
+            WHERE s.utente_id = :utente_id
+            ORDER BY s.data_scadenza ASC
+        ';
+
+
 
         //prepara la query
         $stmt = $this->conn->prepare($query);

@@ -82,6 +82,8 @@ class Utenti{
             //se la row esiste, quindi lo statment non ha dato errore
             if ($row){
                 // verifica della password (hashata nel DB)
+                //echo json_encode($this->password);
+                //return;
                 if (password_verify($this->password, $row['password_hash'])) {
                     //creazione del token
                     //creo l'oggetto passandogli la secret key che è in .env

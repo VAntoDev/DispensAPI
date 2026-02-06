@@ -55,7 +55,7 @@ class UtentiController {
     private function login(){
         //prendo dati raw dal json che ha mandato l'utente  
         $data = json_decode(file_get_contents("php://input"), true);
-            
+        
         //assegno i dati alle proprietà del model
         $this->model->setEmail($data['email']);
         $this->model->setPassword($data['password']);
