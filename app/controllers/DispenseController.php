@@ -20,9 +20,17 @@ class DispenseController {
             //richiesta solo dispense dell'user
             $result = $this->model->readByUserId($id_utente);
 
-            //se il risultato è un array vuoto, perché qualcosa è andato storto con la query / non ci sono righe, allora errore 404
-            if(empty($result)) {
+            //se da errore allora 404, dispensa non trovata
+            if (!$result) {
                 http_response_code(404);
+                echo json_encode(['error' => 'Dispensa non trovata']);
+                return;
+            }
+
+            //se il risultato è un array vuoto, ritorno comunque che è stato 200 OK perchè è solo l'utente che non ha ancora dati
+            if (empty($result)) {
+                http_response_code(200);
+                echo json_encode(['data' => []]);
                 return;
             }
             
@@ -44,9 +52,17 @@ class DispenseController {
         //richiesta di creazione dispensa
         $risultato = $this->model->create();
 
-        //se il risultato è un array vuoto, perché qualcosa è andato storto con la query / non ci sono righe, allora errore 404
-        if(empty($risultato)){
+        //se da errore allora 404, dispensa non trovata
+        if (!$risultato) {
             http_response_code(404);
+            echo json_encode(['error' => 'Dispensa non trovata']);
+            return;
+        }
+
+        //se il risultato è un array vuoto, ritorno comunque che è stato 200 OK perchè è solo l'utente che non ha ancora dati
+        if (empty($risultato)) {
+            http_response_code(200);
+            echo json_encode(['data' => []]);
             return;
         }
             
@@ -69,9 +85,17 @@ class DispenseController {
         //richiesta update account inviato dall'user
         $risultato = $this->model->update();
 
-        //se il risultato è un array vuoto, perché qualcosa è andato storto con la query / non ci sono righe, allora errore 404
-        if(empty($risultato)){
+        //se da errore allora 404, dispensa non trovata
+        if (!$risultato) {
             http_response_code(404);
+            echo json_encode(['error' => 'Dispensa non trovata']);
+            return;
+        }
+
+        //se il risultato è un array vuoto, ritorno comunque che è stato 200 OK perchè è solo l'utente che non ha ancora dati
+        if (empty($risultato)) {
+            http_response_code(200);
+            echo json_encode(['data' => []]);
             return;
         }
         

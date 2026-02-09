@@ -19,9 +19,17 @@ class AlimentiController {
             //richiesta tutti gli alimenti nella tabella
             $alimenti = $this->model->read();
 
-            //se il risultato è un array vuoto, perché qualcosa è andato storto con la query / non ci sono righe, allora errore 404
-            if (empty($alimenti)) {
+            //se da errore allora 404, alimento non trovato
+            if (!$alimenti) {
                 http_response_code(404);
+                echo json_encode(['error' => 'Alimento non trovato']);
+                return;
+            }
+
+            //se il risultato è un array vuoto, ritorno comunque che è stato 200 OK perchè è solo l'utente che non ha ancora dati
+            if (empty($alimenti)) {
+                http_response_code(200);
+                echo json_encode(['data' => []]);
                 return;
             }
 
@@ -33,10 +41,16 @@ class AlimentiController {
             //richiesta solo alimenti dell'user
             $alimenti = $this->model->readByUserId($id_utente);
 
-            //se il risultato è un array vuoto, perché qualcosa è andato storto con la query / non ci sono righe, allora errore 404
-            if (empty($alimenti)) {
+            //query fallita
+            if ($alimenti === false || $alimenti === null) {
                 http_response_code(404);
                 echo json_encode(['error' => 'GET Alimenti fallita']);
+                return;
+            }
+
+            //il risultato è array vuoto
+            if (empty($alimenti)) {
+                http_response_code(204);
                 return;
             }
 
@@ -61,10 +75,17 @@ class AlimentiController {
             //richiesta creazione alimento inviato dall'user
             $risultato = $this->model->create();
             
-            //se il risultato è un array vuoto, perché qualcosa è andato storto con la query / non ci sono righe, allora errore 404
-            if (empty($risultato)) {
+            //se da errore allora 404, alimento non trovato
+            if (!$risultato) {
                 http_response_code(404);
-                echo json_encode(['error' => "POST Alimenti fallita"]);
+                echo json_encode(['error' => 'Alimento non trovato']);
+                return;
+            }
+
+            //se il risultato è un array vuoto, ritorno comunque che è stato 200 OK perchè è solo l'utente che non ha ancora dati
+            if (empty($risultato)) {
+                http_response_code(200);
+                echo json_encode(['data' => []]);
                 return;
             }
 
@@ -89,10 +110,17 @@ class AlimentiController {
         //richiesta creazione alimento inviato dall'user
         $risultato = $this->model->update();
         
-        //se il risultato è un array vuoto, perché qualcosa è andato storto con la query / non ci sono righe, allora errore 404
-        if(empty($risultato)){
+        //se da errore allora 404, alimento non trovato
+        if (!$alimenti) {
             http_response_code(404);
-            echo json_encode(['error' => "UPDATE Alimenti fallita"]);
+            echo json_encode(['error' => 'Alimento non trovato']);
+            return;
+        }
+
+        //se il risultato è un array vuoto, ritorno comunque che è stato 200 OK perchè è solo l'utente che non ha ancora dati
+        if (empty($alimenti)) {
+            http_response_code(200);
+            echo json_encode(['data' => []]);
             return;
         }
 
@@ -122,7 +150,6 @@ class AlimentiController {
 
         //query andata a buon fine, codice 204 per "No Content"
         http_response_code(204);
-        echo json_encode(['data' => "Alimenti Eliminato"]);
     }
 }
 ?>
