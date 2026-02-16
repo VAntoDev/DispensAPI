@@ -6,12 +6,12 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Authorization, Content-Type');
 
-// Tutte le richieste, tranne due GET che sono pubblici, non devono essere mantenute dall'utente perché contengono dati privati o che cambiano di continuo
+// Tutte le risposte, tranne due GET che sono pubblici, non devono essere mantenute dall'utente perché contengono dati privati o che cambiano di continuo
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 header('Expires: 0');
 
-//GESTIONE PRE-FLIGHT CORS
+//gestione pre-flight cors, serve perché il browser può bloccare richieste per motivi di sicurezza se il server non risponde correttamente alla pre-flight 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
